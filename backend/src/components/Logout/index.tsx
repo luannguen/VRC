@@ -4,7 +4,7 @@ import React from 'react'
 import { Button } from '@payloadcms/ui'
 import { LogOut } from 'lucide-react'
 
-// This component will be used as custom logout button
+// This component will be used as custom logout button at the bottom of left menu
 const LogoutButton: React.FC = () => {
   const handleLogout = () => {
     if (window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
@@ -13,7 +13,12 @@ const LogoutButton: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: '1rem', marginTop: '1rem' }}>
+    <div style={{ 
+      padding: '1rem', 
+      marginTop: 'auto',
+      borderTop: '1px solid var(--theme-elevation-100)',
+      marginBottom: '1rem'
+    }}>
       <Button 
         className="logout-button" 
         icon={<LogOut size={18} />} 

@@ -3,3 +3,47 @@ backend là thư mục chưa code xử lý back end và admin sử dụng payloa
 
 code API thì xem  https://payloadcms.com/docs/local-api/overview
 
+## Kinh nghiệm tùy chỉnh giao diện admin Payload CMS
+
+### Thêm nút đăng xuất vào menu bên trái
+Để thêm nút đăng xuất ở dưới cùng của menu bên trái, sử dụng thuộc tính `afterNavLinks` trong admin components:
+
+```typescript
+admin: {
+  components: {
+    // Thêm nút đăng xuất ở dưới cùng của menu bên trái
+    afterNavLinks: ['@/components/Logout'],
+  }
+}
+```
+
+### Khắc phục các lỗi thường gặp
+
+1. **Object literal may only specify known properties**:
+   - Vấn đề: Sử dụng tên thuộc tính không đúng với API Payload (ví dụ: `nav` thay vì `Nav`).
+   - Giải pháp: Kiểm tra tên thuộc tính chính xác trong tài liệu Payload, phân biệt chữ hoa chữ thường.
+
+2. **Error: ENOENT: no such file or directory**:
+   - Vấn đề: Cấu hình tham chiếu đến một tệp không tồn tại.
+   - Giải pháp: Kiểm tra đường dẫn, tạo file nếu cần thiết, hoặc xóa tham chiếu từ cấu hình.
+
+3. **Runtime Error (open is not a function)**:
+   - Vấn đề: Sử dụng API của Payload không đúng cách (ví dụ: `useModal` hook).
+   - Giải pháp: Sử dụng API đúng cách hoặc thay thế bằng giải pháp đơn giản hơn (`window.confirm`).
+
+4. **Mất menu sau khi tùy chỉnh**:
+   - Vấn đề: Thay thế hoàn toàn thành phần điều hướng mà không giữ lại các chức năng gốc.
+   - Giải pháp: Sử dụng các thuộc tính như `afterNavLinks` thay vì thay thế toàn bộ `Nav`.
+
+### Thực hành tốt nhất
+
+1. **Tùy chỉnh từng thành phần**: Sử dụng các thuộc tính cụ thể như `logout.Button`, `afterNavLinks` thay vì thay thế toàn bộ component.
+
+2. **Cấu trúc component đúng**: Đảm bảo các component có đúng cấu trúc (export default, children props).
+
+3. **Khởi động lại sau khi thay đổi**: Sau khi thay đổi cấu hình, khởi động lại server để importMap được tạo lại.
+
+4. **Kiểm tra kiểu dữ liệu**: Một số thuộc tính yêu cầu mảng (ví dụ: `['@/components/X']`), một số khác chấp nhận chuỗi (ví dụ: `'@/components/Y'`).
+
+5. **Tham khảo tài liệu**: Luôn kiểm tra tài liệu cập nhật tại https://payloadcms.com/docs/admin/components khi gặp vấn đề.
+
