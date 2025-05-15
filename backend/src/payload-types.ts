@@ -1650,6 +1650,10 @@ export interface Footer {
 export interface CompanyInfo {
   id: string;
   /**
+   * Nếu bật, API thông tin công ty sẽ yêu cầu đăng nhập để truy cập
+   */
+  requireAuth?: boolean | null;
+  /**
    * Tên đầy đủ của công ty (hiển thị trên trang Liên hệ)
    */
   companyName: string;
@@ -1755,6 +1759,7 @@ export interface FooterSelect<T extends boolean = true> {
  * via the `definition` "company-info_select".
  */
 export interface CompanyInfoSelect<T extends boolean = true> {
+  requireAuth?: T;
   companyName?: T;
   companyShortName?: T;
   companyDescription?: T;

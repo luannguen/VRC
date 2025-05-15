@@ -1,29 +1,64 @@
-import type { PayloadRequest } from 'payload';
-import { NextRequest, NextResponse } from 'next/server';
-import payload from 'payload';
-import { headersWithCors } from 'payload';
+import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+// Helper function to create CORS headers
+function createCorsHeaders() {
+  const headers = new Headers()
+  headers.append('Access-Control-Allow-Origin', '*') // Cho phép mọi origin
+  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  return headers
+}
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
-    // Fetch the company information from the global
+    // Initialize Payload
+    const payload = await getPayload({
+      config,
+    })
+
+    // Fetch company information
     const companyInfo = await payload.findGlobal({
       slug: 'company-info',
-    });
+      depth: 2, // Populate relations like logo
+    })
+
+    // Check if authentication is required
+    if (companyInfo?.requireAuth) {
+      // Check for Bearer token
+      const authHeader = req.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Check for Payload cookie
+        const cookies = req.headers.get('cookie')
+        const hasPayloadCookie = cookies && cookies.includes('payload-token=')
+        
+        if (!hasPayloadCookie) {
+          const headers = createCorsHeaders()
+          return NextResponse.json(
+            {
+              success: false,
+              message: 'Xác thực thất bại. Vui lòng đăng nhập để truy cập thông tin.',
+            },
+            {
+              status: 401,
+              headers,
+            }
+          )
+        }
+      }
+    }
 
     // Return success response
-    return NextResponse.json(
-      companyInfo,
-      {
-        status: 200,
-        headers: headersWithCors({
-          headers: new Headers(),
-          req: req as unknown as PayloadRequest,
-        }),
-      }
-    );
+    const headers = createCorsHeaders()
+    return NextResponse.json(companyInfo, {
+      status: 200,
+      headers,
+    })
   } catch (error) {
-    console.error('Error fetching company information:', error);
+    console.error('Error fetching company information:', error)
     
+    const headers = createCorsHeaders()
     return NextResponse.json(
       {
         success: false,
@@ -31,11 +66,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       {
         status: 500,
-        headers: headersWithCors({
-          headers: new Headers(),
-          req: req as unknown as PayloadRequest,
-        }),
+        headers,
       }
-    );
+    )
   }
+}
+
+// Handle CORS preflight requests
+export function OPTIONS() {
+  const headers = createCorsHeaders()
+  return new NextResponse(null, {
+    status: 204,
+    headers,
+  })
 }

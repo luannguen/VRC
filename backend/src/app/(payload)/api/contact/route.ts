@@ -1,16 +1,30 @@
-import type { PayloadRequest } from 'payload';
-import { NextRequest, NextResponse } from 'next/server';
-import payload from 'payload';
-import { headersWithCors } from 'payload';
+import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
+import config from '@payload-config'
+
+// Helper function to create CORS headers
+function createCorsHeaders() {
+  const headers = new Headers()
+  headers.append('Access-Control-Allow-Origin', '*') // Cho phép mọi origin
+  headers.append('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  return headers
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    // Initialize Payload
+    const payload = await getPayload({
+      config,
+    })
+
     // Parse the request body
-    const body = await req.json();
-    const { name, email, phone, subject, message } = body;
+    const body = await req.json()
+    const { name, email, phone, subject, message } = body
 
     // Validate required fields
     if (!name || !email || !message) {
+      const headers = createCorsHeaders()
       return NextResponse.json(
         {
           success: false,
@@ -18,12 +32,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
         {
           status: 400,
-          headers: headersWithCors({
-            headers: new Headers(),
-            req: req as unknown as PayloadRequest,
-          }),
+          headers,
         }
-      );
+      )
     }
 
     // Create a new contact submission
@@ -37,9 +48,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         message,
         status: 'new',
       },
-    });
+    })
 
     // Return success response
+    const headers = createCorsHeaders()
     return NextResponse.json(
       {
         success: true,
@@ -51,15 +63,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       {
         status: 200,
-        headers: headersWithCors({
-          headers: new Headers(),
-          req: req as unknown as PayloadRequest,
-        }),
+        headers,
       }
-    );
+    )
   } catch (error) {
-    console.error('Error submitting contact form:', error);
+    console.error('Error submitting contact form:', error)
     
+    const headers = createCorsHeaders()
     return NextResponse.json(
       {
         success: false,
@@ -67,11 +77,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       {
         status: 500,
-        headers: headersWithCors({
-          headers: new Headers(),
-          req: req as unknown as PayloadRequest,
-        }),
+        headers,
       }
-    );
+    )
   }
+}
+
+// Handle CORS preflight requests
+export function OPTIONS() {
+  const headers = createCorsHeaders()
+  return new NextResponse(null, {
+    status: 204,
+    headers,
+  })
 }

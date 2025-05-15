@@ -10,6 +10,16 @@ export const CompanyInfo: GlobalConfig = {
   },
   fields: [
     {
+      name: 'requireAuth',
+      label: 'Yêu cầu xác thực',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Nếu bật, API thông tin công ty sẽ yêu cầu đăng nhập để truy cập',
+        position: 'sidebar',
+      }
+    },
+    {
       name: 'companyName',
       label: 'Tên công ty',
       type: 'text',
@@ -145,8 +155,21 @@ export const CompanyInfo: GlobalConfig = {
       type: 'upload',
       relationTo: 'media',
     }
-  ],
-  access: {
-    read: () => true,
+  ],  access: {
+    read: ({ req }) => {
+      // Always allow access from admin dashboard
+      const referrer = req.headers?.get?.('referer') || '';
+      if (referrer.includes('/admin')) {
+        return true;
+      }
+      
+      // For API access, we can't check requireAuth field here
+      // because it would cause an infinite loop
+      // The actual authentication check will be done in the API endpoint
+      return true;
+    },
+    update: ({ req: { user } }) => {
+      return Boolean(user);
+    },
   },
 };
