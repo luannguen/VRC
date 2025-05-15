@@ -72,6 +72,7 @@ export interface Config {
     media: Media;
     categories: Category;
     users: User;
+    'contact-submissions': ContactSubmission;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -88,6 +89,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -103,10 +105,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'company-info': CompanyInfo;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'company-info': CompanyInfoSelect<false> | CompanyInfoSelect<true>;
   };
   locale: null;
   user: User & {
@@ -728,6 +732,36 @@ export interface Form {
   createdAt: string;
 }
 /**
+ * Các yêu cầu liên hệ từ khách hàng
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions".
+ */
+export interface ContactSubmission {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subject:
+    | 'general'
+    | 'repair'
+    | 'maintenance'
+    | 'installation'
+    | 'consulting'
+    | 'inverter-technology'
+    | 'heat-recovery'
+    | 'energy-efficiency'
+    | 'other';
+  message: string;
+  status?: ('new' | 'in-progress' | 'resolved' | 'need-info' | 'closed') | null;
+  /**
+   * Chỉ admin thấy được các ghi chú này
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -918,6 +952,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'contact-submissions';
+        value: string | ContactSubmission;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1278,6 +1316,21 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-submissions_select".
+ */
+export interface ContactSubmissionsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  subject?: T;
+  message?: T;
+  status?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects_select".
  */
 export interface RedirectsSelect<T extends boolean = true> {
@@ -1589,6 +1642,69 @@ export interface Footer {
   createdAt?: string | null;
 }
 /**
+ * Quản lý thông tin liên hệ và giới thiệu về công ty
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "company-info".
+ */
+export interface CompanyInfo {
+  id: string;
+  /**
+   * Tên đầy đủ của công ty (hiển thị trên trang Liên hệ)
+   */
+  companyName: string;
+  /**
+   * Tên viết tắt hoặc thương hiệu của công ty (VRC)
+   */
+  companyShortName?: string | null;
+  /**
+   * Mô tả ngắn gọn về công ty hiển thị trên trang Liên hệ
+   */
+  companyDescription?: string | null;
+  contactSection: {
+    address: string;
+    phone?: string | null;
+    email?: string | null;
+    hotline?: string | null;
+    workingHours?: string | null;
+    fax?: string | null;
+  };
+  socialMedia?: {
+    facebook?: string | null;
+    twitter?: string | null;
+    instagram?: string | null;
+    linkedin?: string | null;
+    youtube?: string | null;
+    telegram?: string | null;
+  };
+  maps?: {
+    /**
+     * URL iframe của Google Maps (src từ thẻ iframe)
+     */
+    googleMapsEmbed?: string | null;
+    latitude?: string | null;
+    longitude?: string | null;
+  };
+  additionalInfo?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  logo?: (string | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
@@ -1630,6 +1746,47 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "company-info_select".
+ */
+export interface CompanyInfoSelect<T extends boolean = true> {
+  companyName?: T;
+  companyShortName?: T;
+  companyDescription?: T;
+  contactSection?:
+    | T
+    | {
+        address?: T;
+        phone?: T;
+        email?: T;
+        hotline?: T;
+        workingHours?: T;
+        fax?: T;
+      };
+  socialMedia?:
+    | T
+    | {
+        facebook?: T;
+        twitter?: T;
+        instagram?: T;
+        linkedin?: T;
+        youtube?: T;
+        telegram?: T;
+      };
+  maps?:
+    | T
+    | {
+        googleMapsEmbed?: T;
+        latitude?: T;
+        longitude?: T;
+      };
+  additionalInfo?: T;
+  logo?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

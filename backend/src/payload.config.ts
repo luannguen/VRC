@@ -11,8 +11,10 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
+import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
+import { CompanyInfo } from './globals/CompanyInfo'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
@@ -61,11 +63,15 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',
-  }),
-  collections: [Pages, Posts, Media, Categories, Users],
-  cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
+    url: process.env.DATABASE_URI || '',  }),  collections: [Pages, Posts, Media, Categories, Users, ContactSubmissions],
+  cors: {
+    origins: [
+      getServerSideURL(),                                    // Backend URL
+      process.env.FRONTEND_URL || 'http://localhost:5173',   // Frontend Vite URL
+      // Thêm domain production nếu cần
+    ].filter(Boolean),    headers: ['authorization', 'content-type', 'x-custom-header'], // Thêm headers cần thiết
+  },
+  globals: [Header, Footer, CompanyInfo],
   plugins: [
     ...plugins,
     // storage-adapter-placeholder

@@ -47,3 +47,84 @@ admin: {
 
 5. **Tham khảo tài liệu**: Luôn kiểm tra tài liệu cập nhật tại https://payloadcms.com/docs/admin/components khi gặp vấn đề.
 
+## Cấu hình CORS trong Payload CMS
+
+CORS (Cross-Origin Resource Sharing) là một cơ chế cho phép các tài nguyên web được truy cập từ các domain khác nhau. Việc cấu hình CORS đúng cách là rất quan trọng để tránh lỗi khi frontend gọi API từ backend.
+
+### Cấu hình CORS hiện tại trong dự án
+
+Hiện tại, dự án đang sử dụng cấu hình:
+
+```typescript
+cors: [getServerSideURL()].filter(Boolean),
+```
+
+Hàm `getServerSideURL()` trả về URL của server (mặc định là `http://localhost:3000` nếu không có biến môi trường `NEXT_PUBLIC_SERVER_URL`).
+
+### Các cách cấu hình CORS trong Payload
+
+1. **Cho phép từ một domain cụ thể**:
+   ```typescript
+   cors: ['https://example.com'],
+   ```
+
+2. **Cho phép từ nhiều domain**:
+   ```typescript
+   cors: ['https://example.com', 'https://app.example.com'],
+   ```
+
+3. **Cho phép từ tất cả các domain (không khuyến khích cho production)**:
+   ```typescript
+   cors: '*',
+   ```
+
+4. **Cấu hình nâng cao với headers tùy chỉnh**:
+   ```typescript
+   cors: {
+     origins: ['https://example.com'],
+     headers: ['x-custom-header', 'authorization'],
+   },
+   ```
+
+### Tránh lỗi CORS phổ biến
+
+1. **Đảm bảo thêm tất cả domain frontend vào danh sách origins**:
+   - Development: `http://localhost:[port]`
+   - Production: `https://yourdomain.com`
+
+2. **Xử lý credentials**:
+   - Nếu sử dụng `credentials: 'include'` trong fetch requests, đảm bảo thiết lập CORS đúng cách
+
+3. **Headers tùy chỉnh**:
+   - Nếu sử dụng headers tùy chỉnh trong requests, đảm bảo thêm chúng vào cấu hình CORS
+
+4. **Middleware cho endpoints tùy chỉnh**:
+   - Đối với endpoints tùy chỉnh, sử dụng hàm `headersWithCors` của Payload:
+   ```typescript
+   import { headersWithCors } from 'payload'
+   
+   return Response.json(
+     { message: 'success' },
+     {
+       headers: headersWithCors({
+         headers: new Headers(),
+         req,
+       })
+     },
+   )
+   ```
+
+### Cấu hình CORS khuyến nghị cho dự án VRC
+
+```typescript
+cors: {
+  origins: [
+    process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',  // Backend URL
+    process.env.FRONTEND_URL || 'http://localhost:5173',            // Frontend URL (Vite mặc định)
+    // Thêm domain production ở đây
+  ].filter(Boolean),
+  headers: ['authorization', 'content-type', 'x-custom-header'],    // Thêm headers tùy chỉnh nếu cần
+},
+```
+
+sau khi tạo file, kiểm tra lại xem IDE báo lỗi gì không, nếu có thì sửa lại cho đúng.
