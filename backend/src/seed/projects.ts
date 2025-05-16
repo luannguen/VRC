@@ -1,23 +1,11 @@
 // filepath: e:\Download\vrc\backend\src\seed\projects.ts
 import { Payload } from 'payload';
 
-// Helper function to get a default media ID for required media fields
-async function getDefaultMediaId(payload: Payload): Promise<string | null> {
-  try {
-    const media = await payload.find({
-      collection: 'media',
-      limit: 1,
-    });
-    
-    if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
-      return media.docs[0].id;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching default media:', error);
-    return null;
-  }
-}
+// Import our improved media management utilities
+import { 
+  getImageForCollectionItem,
+  getOrCreateDefaultMediaId 
+} from './utils/seedMediaManagement';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -59,14 +47,9 @@ export const seedProjects = async (payload: Payload) => {
     if (existingProjects.docs.length > 0) {
       console.log(`Found ${existingProjects.docs.length} existing projects, skipping seed.`);
       return;
-    }
-
-    // Get default media id for required media fields
-    const defaultMediaId = await getDefaultMediaId(payload);
-    if (!defaultMediaId) {
-      console.error('Failed to get default media ID. Please upload at least one media item first.');
-      return;
-    }
+    }    // Get or create a default media ID for fallback
+    const defaultMediaId = await getOrCreateDefaultMediaId(payload);
+    console.log('Default media ID for projects fallback:', defaultMediaId);
 
     // Sample projects based on the frontend data
     const projects = [
@@ -115,16 +98,27 @@ export const seedProjects = async (payload: Payload) => {
         featuredImage: defaultMediaId, // Required field
         content: createRichText("Thiết kế và lắp đặt hệ thống kho lạnh công nghiệp quy mô lớn cho nhà máy chế biến thủy sản xuất khẩu tại Cà Mau."),
       },
-    ];
-
-    // Create projects
+    ];    // Create projects
     for (const project of projects) {
       try {
+        // Get appropriate image for this project
+        const mediaId = await getImageForCollectionItem(
+          payload, 
+          'project', 
+          project.title
+        );
+        
+        // Create project with the appropriate image
+        const data = {
+          ...project,
+          featuredImage: mediaId || defaultMediaId
+        };
+        
         const createdProject = await payload.create({
           collection: 'projects',
-          data: project as any, // Using type assertion as a temporary solution
+          data: data as any, // Using type assertion as a temporary solution
         });
-        console.log(`Created project: ${createdProject.title}`);
+        console.log(`Created project: ${createdProject.title} with media ID: ${data.featuredImage}`);
       } catch (error) {
         console.error(`Error creating project ${project.title}:`, error);
       }

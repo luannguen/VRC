@@ -1,23 +1,11 @@
 // filepath: e:\Download\vrc\backend\src\seed\technologies.ts
 import { Payload } from 'payload';
 
-// Helper function to get a default media ID for required media fields
-async function getDefaultMediaId(payload: Payload): Promise<string | null> {
-  try {
-    const media = await payload.find({
-      collection: 'media',
-      limit: 1,
-    });
-    
-    if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
-      return media.docs[0].id;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching default media:', error);
-    return null;
-  }
-}
+// Import our improved media management utilities
+import { 
+  getImageForCollectionItem,
+  getOrCreateDefaultMediaId 
+} from './utils/seedMediaManagement';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -59,14 +47,11 @@ export const seedTechnologies = async (payload: Payload) => {
     if (existingTechnologies.docs.length > 0) {
       console.log(`Found ${existingTechnologies.docs.length} existing technologies, skipping seed.`);
       return;
-    }
-
-    // Get default media id for required media fields
-    const defaultMediaId = await getDefaultMediaId(payload);
-    if (!defaultMediaId) {
-      console.error('Failed to get default media ID. Please upload at least one media item first.');
-      return;
-    }    // Sample technologies based on the frontend data
+    }    // Get a default media ID that will be used as fallback
+    const defaultMediaId = await getOrCreateDefaultMediaId(payload);
+    console.log('Default media ID for fallback:', defaultMediaId);
+    
+    // Sample technologies based on the frontend data
     const technologies = [
       {
         name: "Inverter DC",
@@ -176,16 +161,27 @@ export const seedTechnologies = async (payload: Payload) => {
         status: "published",
         order: 2,
       }
-    ];
-
-    // Create technologies
+    ];    // Create technologies
     for (const tech of technologies) {
       try {
+        // Get appropriate image for this technology/partner/supplier
+        const mediaId = await getImageForCollectionItem(
+          payload, 
+          tech.type, // 'technology', 'partner', or 'supplier'
+          tech.name
+        );
+        
+        // Use the uploaded image ID or fall back to defaultMediaId
+        const data = {
+          ...tech,
+          logo: mediaId || defaultMediaId
+        };
+        
         const createdTech = await payload.create({
           collection: 'technologies',
-          data: tech as any, // Using type assertion as a temporary solution
+          data: data as any, // Using type assertion as a temporary solution
         });
-        console.log(`Created technology: ${createdTech.name}`);
+        console.log(`Created ${tech.type} ${createdTech.name} with media ID: ${data.logo}`);
       } catch (error) {
         console.error(`Error creating technology ${tech.name}:`, error);
       }

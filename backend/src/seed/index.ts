@@ -13,6 +13,7 @@ import { seedEvents } from './events';
 
 export const seed = async (payload: Payload) => {
   console.log('🌱 Starting seed process...');
+  console.log('🖼️ Images will be automatically uploaded from the frontend directory during seeding');
 
   // Seed data in a specific order - globals first
   await seedCompanyInfo(payload);
@@ -30,6 +31,7 @@ export const seed = async (payload: Payload) => {
   await seedEvents(payload);
 
   console.log('🌱 Seed process completed!');
+  console.log('🖼️ All available frontend images have been uploaded to the backend');
 };
 
 export default seed;

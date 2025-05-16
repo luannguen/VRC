@@ -1,23 +1,11 @@
 // filepath: e:\Download\vrc\backend\src\seed\posts.ts
 import { Payload } from 'payload';
 
-// Helper function to get a default media ID for required media fields
-async function getDefaultMediaId(payload: Payload): Promise<string | null> {
-  try {
-    const media = await payload.find({
-      collection: 'media',
-      limit: 1,
-    });
-    
-    if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
-      return media.docs[0].id;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching default media:', error);
-    return null;
-  }
-}
+// Import our improved media management utilities
+import { 
+  getImageForCollectionItem,
+  getOrCreateDefaultMediaId 
+} from './utils/seedMediaManagement';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -59,14 +47,9 @@ export const seedPosts = async (payload: Payload) => {
     if (existingPosts.docs.length > 0) {
       console.log(`Found ${existingPosts.docs.length} existing posts, skipping seed.`);
       return;
-    }
-
-    // Get default media id for required media fields
-    const defaultMediaId = await getDefaultMediaId(payload);
-    if (!defaultMediaId) {
-      console.error('Failed to get default media ID. Please upload at least one media item first.');
-      return;
-    }
+    }    // Get or create a default media ID for fallback
+    const defaultMediaId = await getOrCreateDefaultMediaId(payload);
+    console.log('Default media ID for posts fallback:', defaultMediaId);
 
     // Sample posts
     const posts = [
@@ -109,16 +92,31 @@ export const seedPosts = async (payload: Payload) => {
           image: defaultMediaId
         }
       }
-    ];
-
-    // Create posts
+    ];    // Create posts
     for (const post of posts) {
       try {
+        // Get appropriate image for this post
+        const mediaId = await getImageForCollectionItem(
+          payload, 
+          'post', 
+          post.title
+        );
+        
+        // Create post with the appropriate image
+        const data = {
+          ...post,
+          heroImage: mediaId || defaultMediaId,
+          meta: {
+            ...post.meta,
+            image: mediaId || defaultMediaId
+          }
+        };
+        
         const createdPost = await payload.create({
           collection: 'posts',
-          data: post as any, // Using type assertion as a temporary solution
+          data: data as any, // Using type assertion as a temporary solution
         });
-        console.log(`Created post: ${createdPost.title}`);
+        console.log(`Created post: ${createdPost.title} with media ID: ${data.heroImage}`);
       } catch (error) {
         console.error(`Error creating post ${post.title}:`, error);
       }

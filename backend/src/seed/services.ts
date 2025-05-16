@@ -1,23 +1,11 @@
 // filepath: e:\Download\vrc\backend\src\seed\services.ts
 import { Payload } from 'payload';
 
-// Helper function to get a default media ID for required media fields
-async function getDefaultMediaId(payload: Payload): Promise<string | null> {
-  try {
-    const media = await payload.find({
-      collection: 'media',
-      limit: 1,
-    });
-    
-    if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
-      return media.docs[0].id;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error fetching default media:', error);
-    return null;
-  }
-}
+// Import our improved media management utilities
+import { 
+  getImageForCollectionItem,
+  getOrCreateDefaultMediaId 
+} from './utils/seedMediaManagement';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -59,14 +47,9 @@ export const seedServices = async (payload: Payload) => {
     if (existingServices.docs.length > 0) {
       console.log(`Found ${existingServices.docs.length} existing services, skipping seed.`);
       return;
-    }
-
-    // Get default media id for required media fields
-    const defaultMediaId = await getDefaultMediaId(payload);
-    if (!defaultMediaId) {
-      console.error('Failed to get default media ID. Please upload at least one media item first.');
-      return;
-    }
+    }    // Get or create a default media ID for fallback
+    const defaultMediaId = await getOrCreateDefaultMediaId(payload);
+    console.log('Default media ID for services fallback:', defaultMediaId);
 
     // Sample services based on the frontend data
     const services = [
@@ -100,16 +83,27 @@ export const seedServices = async (payload: Payload) => {
         content: createRichText("Khắc phục sự cố nhanh chóng, hỗ trợ 24/7 cho mọi hệ thống điện lạnh."),
         price: "Theo giờ",
       },
-    ];
-
-    // Create services
+    ];    // Create services
     for (const service of services) {
       try {
+        // Get appropriate image for this service
+        const mediaId = await getImageForCollectionItem(
+          payload, 
+          'service', 
+          service.title
+        );
+        
+        // Create service with the appropriate image
+        const data = {
+          ...service,
+          featuredImage: mediaId || defaultMediaId
+        };
+        
         const createdService = await payload.create({
           collection: 'services',
-          data: service as any, // Using type assertion as a temporary solution
+          data: data as any, // Using type assertion as a temporary solution
         });
-        console.log(`Created service: ${createdService.title}`);
+        console.log(`Created service: ${createdService.title} with media ID: ${data.featuredImage}`);
       } catch (error) {
         console.error(`Error creating service ${service.title}:`, error);
       }
