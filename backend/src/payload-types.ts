@@ -73,6 +73,11 @@ export interface Config {
     categories: Category;
     users: User;
     'contact-submissions': ContactSubmission;
+    navigation: Navigation;
+    products: Product;
+    projects: Project;
+    services: Service;
+    technologies: Technology;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -90,6 +95,11 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    services: ServicesSelect<false> | ServicesSelect<true>;
+    technologies: TechnologiesSelect<false> | TechnologiesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -763,6 +773,354 @@ export interface ContactSubmission {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: string;
+  title: string;
+  type: 'main' | 'secondary' | 'footer';
+  /**
+   * Số càng nhỏ thì hiển thị càng trước
+   */
+  order?: number | null;
+  items?:
+    | {
+        label: string;
+        link: string;
+        target?: ('_self' | '_blank') | null;
+        /**
+         * Nhập tên icon từ thư viện icon (ví dụ: home, phone, etc.)
+         */
+        icon?: string | null;
+        /**
+         * Menu con (dropdown)
+         */
+        childItems?:
+          | {
+              label: string;
+              link: string;
+              target?: ('_self' | '_blank') | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'draft' | 'published';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  name: string;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  /**
+   * Mô tả ngắn gọn hiển thị trong danh sách sản phẩm
+   */
+  excerpt?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  mainImage: string | Media;
+  gallery?:
+    | {
+        image: string | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  category?: (string | null) | Category;
+  tags?: (string | Category)[] | null;
+  /**
+   * Đánh dấu là sản phẩm nổi bật để hiện trên trang chủ
+   */
+  featured?: boolean | null;
+  /**
+   * Chọn các sản phẩm liên quan để hiển thị phía dưới
+   */
+  relatedProducts?:
+    | {
+        relationTo: 'products';
+        value: string | Product;
+      }[]
+    | null;
+  specifications?:
+    | {
+        name: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  documents?:
+    | {
+        name: string;
+        file: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'draft' | 'published';
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (string | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: string;
+  title: string;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  /**
+   * Tên công ty hoặc tổ chức khách hàng
+   */
+  client?: string | null;
+  /**
+   * Vị trí địa lý của dự án
+   */
+  location?: string | null;
+  timeframe?: {
+    startDate?: string | null;
+    endDate?: string | null;
+    isOngoing?: boolean | null;
+  };
+  /**
+   * Mô tả ngắn gọn hiển thị trong danh sách dự án
+   */
+  summary?: string | null;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  featuredImage: string | Media;
+  gallery?:
+    | {
+        image: string | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  services?: ('consulting' | 'installation' | 'maintenance' | 'repair' | 'support')[] | null;
+  categories?: (string | Category)[] | null;
+  /**
+   * Đánh dấu là dự án nổi bật để hiện trên trang chủ
+   */
+  featured?: boolean | null;
+  /**
+   * Đánh giá của khách hàng về dự án (nếu có)
+   */
+  testimonial?: {
+    quote?: string | null;
+    author?: string | null;
+    position?: string | null;
+  };
+  /**
+   * Chọn các dự án liên quan để hiển thị phía dưới
+   */
+  relatedProjects?:
+    | {
+        relationTo: 'projects';
+        value: string | Project;
+      }[]
+    | null;
+  status: 'draft' | 'published';
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (string | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services".
+ */
+export interface Service {
+  id: string;
+  title: string;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  type: 'consulting' | 'installation' | 'maintenance' | 'repair' | 'support' | 'other';
+  /**
+   * Mô tả ngắn gọn hiển thị trong danh sách dịch vụ
+   */
+  summary?: string | null;
+  /**
+   * Icon đại diện cho dịch vụ
+   */
+  icon?: (string | null) | Media;
+  featuredImage: string | Media;
+  content?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  features?:
+    | {
+        title: string;
+        description?: string | null;
+        /**
+         * Nhập tên icon từ thư viện icon (ví dụ: check, star, etc.)
+         */
+        icon?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  benefits?:
+    | {
+        title: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  pricing?: {
+    showPricing?: boolean | null;
+    priceType?: ('fixed' | 'hourly' | 'custom') | null;
+    price?: number | null;
+    /**
+     * Ví dụ: "Liên hệ để có giá tốt nhất", "Từ 5 triệu đồng"
+     */
+    customPrice?: string | null;
+    currency?: ('VND' | 'USD') | null;
+  };
+  faq?:
+    | {
+        question: string;
+        answer: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Số càng nhỏ thì hiển thị càng trước
+   */
+  order?: number | null;
+  /**
+   * Đánh dấu là dịch vụ nổi bật để hiện trên trang chủ
+   */
+  featured?: boolean | null;
+  /**
+   * Chọn các dịch vụ liên quan để hiển thị phía dưới
+   */
+  relatedServices?:
+    | {
+        relationTo: 'services';
+        value: string | Service;
+      }[]
+    | null;
+  status: 'draft' | 'published';
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (string | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "technologies".
+ */
+export interface Technology {
+  id: string;
+  name: string;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  type: 'technology' | 'partner' | 'supplier';
+  logo: string | Media;
+  /**
+   * URL website của công ty/đối tác (https://example.com)
+   */
+  website?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Số càng nhỏ thì hiển thị càng trước
+   */
+  order?: number | null;
+  /**
+   * Đánh dấu là đối tác nổi bật để hiện trên trang chủ
+   */
+  featured?: boolean | null;
+  /**
+   * Các sản phẩm liên quan đến công nghệ/đối tác này
+   */
+  products?:
+    | {
+        relationTo: 'products';
+        value: string | Product;
+      }[]
+    | null;
+  certifications?:
+    | {
+        title: string;
+        image?: (string | null) | Media;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'draft' | 'published';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -956,6 +1314,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contact-submissions';
         value: string | ContactSubmission;
+      } | null)
+    | ({
+        relationTo: 'navigation';
+        value: string | Navigation;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: string | Project;
+      } | null)
+    | ({
+        relationTo: 'services';
+        value: string | Service;
+      } | null)
+    | ({
+        relationTo: 'technologies';
+        value: string | Technology;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1326,6 +1704,216 @@ export interface ContactSubmissionsSelect<T extends boolean = true> {
   message?: T;
   status?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  order?: T;
+  items?:
+    | T
+    | {
+        label?: T;
+        link?: T;
+        target?: T;
+        icon?: T;
+        childItems?:
+          | T
+          | {
+              label?: T;
+              link?: T;
+              target?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  slugLock?: T;
+  excerpt?: T;
+  description?: T;
+  mainImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  category?: T;
+  tags?: T;
+  featured?: T;
+  relatedProducts?: T;
+  specifications?:
+    | T
+    | {
+        name?: T;
+        value?: T;
+        id?: T;
+      };
+  documents?:
+    | T
+    | {
+        name?: T;
+        file?: T;
+        id?: T;
+      };
+  status?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  slugLock?: T;
+  client?: T;
+  location?: T;
+  timeframe?:
+    | T
+    | {
+        startDate?: T;
+        endDate?: T;
+        isOngoing?: T;
+      };
+  summary?: T;
+  content?: T;
+  featuredImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  services?: T;
+  categories?: T;
+  featured?: T;
+  testimonial?:
+    | T
+    | {
+        quote?: T;
+        author?: T;
+        position?: T;
+      };
+  relatedProjects?: T;
+  status?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "services_select".
+ */
+export interface ServicesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  slugLock?: T;
+  type?: T;
+  summary?: T;
+  icon?: T;
+  featuredImage?: T;
+  content?: T;
+  features?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        icon?: T;
+        id?: T;
+      };
+  benefits?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  pricing?:
+    | T
+    | {
+        showPricing?: T;
+        priceType?: T;
+        price?: T;
+        customPrice?: T;
+        currency?: T;
+      };
+  faq?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  order?: T;
+  featured?: T;
+  relatedServices?: T;
+  status?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "technologies_select".
+ */
+export interface TechnologiesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  slugLock?: T;
+  type?: T;
+  logo?: T;
+  website?: T;
+  description?: T;
+  order?: T;
+  featured?: T;
+  products?: T;
+  certifications?:
+    | T
+    | {
+        title?: T;
+        image?: T;
+        description?: T;
+        id?: T;
+      };
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

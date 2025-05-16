@@ -3,6 +3,7 @@
 ## API Documentation
 
 - [Backend API Reference](./backend-api-reference.md) - Complete API reference for all endpoints
+- [API Endpoints Reference](./api-endpoints-reference.md) - Detailed documentation for all API endpoints
 - [Backend API Implementation Summary](./backend-api-implementation-summary.md) - Overview of API implementation
 - [Backend API Implementation](./backend-api-implementation.md) - Detailed implementation information
 - [Backend API Structure](./backend-api-structure.md) - Structure and organization of API endpoints
@@ -12,6 +13,7 @@
 
 - [Testing Guide](./testing-guide.md) - Comprehensive testing documentation
 - [Test Structure](./test-structure.md) - Information about the test structure organization
+- [Test HTML Debugging Notes](./test-html-debugging-notes.md) - Fixes for common test HTML issues
 
 ## Integration Guides
 

@@ -11,6 +11,11 @@ import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { ContactSubmissions } from './collections/ContactSubmissions'
+import { Navigation } from './collections/Navigation'
+import { Products } from './collections/Products'
+import { Projects } from './collections/Projects'
+import { Services } from './collections/Services'
+import { Technologies } from './collections/Technologies'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { CompanyInfo } from './globals/CompanyInfo'
@@ -21,8 +26,7 @@ import { getServerSideURL } from './utilities/getURL'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildConfig({
-  admin: {
+export default buildConfig({  admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
@@ -62,7 +66,19 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',  }),  collections: [Pages, Posts, Media, Categories, Users, ContactSubmissions],  cors: {
+    url: process.env.DATABASE_URI || '',  }),  collections: [
+    Pages, 
+    Posts, 
+    Media, 
+    Categories, 
+    Users, 
+    ContactSubmissions,
+    Navigation,
+    Products,
+    Projects,
+    Services,
+    Technologies
+  ],  cors: {
     origins: [
       getServerSideURL(),                                    // Backend URL
       process.env.FRONTEND_URL || 'http://localhost:5173',   // Default Frontend Vite URL

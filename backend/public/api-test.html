@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VRC API Testing Tool</title>
+    <!-- Ignore Next.js preloaded resources -->
+    <script>
+        // This script removes unused preload links to prevent browser warnings
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('link[rel="preload"]');
+            links.forEach(link => {
+                // If it's a Next.js generated link, modify its attributes
+                if (link.href.includes('_next/static/css')) {
+                    // Change rel from preload to prefetch to avoid the warning
+                    link.setAttribute('rel', 'prefetch');
+                }
+            });
+        });
+    </script>
     <style>
         :root {
             --primary: #2563eb;
@@ -445,8 +459,6 @@
                 <div class="docs-section">
                     <h3>Thông tin API</h3>
                     <p>API này cung cấp thông tin được tối ưu cho phần header website, bao gồm tên công ty, logo, thông tin liên hệ và mạng xã hội.</p>
-                    <p><strong>Chức năng mới:</strong> Dữ liệu điều hướng (navigation) được lấy trực tiếp từ phần <code>navItems</code> của global <code>header</code> trong bảng quản trị.</p>
-                    <p>Khi quản trị viên cập nhật thông tin điều hướng trong Admin UI (tại <code>/admin/globals/header</code>), các thay đổi sẽ tự động được áp dụng cho frontend thông qua API này.</p>
                     <div class="url-display">
                         <span class="method get">GET</span> /api/header-info
                     </div>
@@ -644,54 +656,6 @@
                         <h4>Headers</h4>
                         <p><code>Authorization: Bearer {token}</code> - Tùy chọn, nếu API yêu cầu xác thực</p>
                         
-                        <h4>Ví dụ Response:</h4>
-                        <pre style="font-size: 12px; line-height: 1.3;">
-{
-  "companyName": "Công ty TNHH VRC",
-  "logo": {
-    "url": "/media/logo.svg",
-    "alt": "Logo VRC"
-  },
-  "contact": {
-    "address": "123 Đường ABC, Quận XYZ, TP. HCM",
-    "phone": "0123456789",
-    "email": "info@vrc.com",
-    "workingHours": "8:00 - 17:30, Thứ 2 - Thứ 6"
-  },
-  "social": {
-    "facebook": "https://facebook.com/vrc",
-    "youtube": "https://youtube.com/vrc",
-    "zalo": "https://zalo.me/vrc"
-  },
-  "navigation": {
-    "mainLinks": [
-      {
-        "title": "Trang chủ",
-        "routeKey": "HOME"
-      },
-      {
-        "title": "Giới thiệu",
-        "routeKey": "ABOUT"
-      },
-      {
-        "title": "Dịch vụ",
-        "routeKey": "SERVICES"
-      }
-    ],
-    "moreLinks": [
-      {
-        "title": "Tin tức",
-        "routeKey": "NEWS"
-      },
-      {
-        "title": "Liên hệ",
-        "routeKey": "CONTACT"
-      }
-    ]
-  }
-}</pre>
-                        <p><em>Lưu ý: Các liên kết trong <code>navigation</code> được tự động chuyển đổi từ <code>navItems</code> của global <code>header</code> trong Payload CMS.</em></p>
-                        
                         <div class="btn-group">
                             <button id="docsFetchOfficialApi" class="btn" style="margin: 10px 0;">Lấy dữ liệu từ API chính thức</button>
                             <button id="docsFetchCustomApi" class="btn btn-secondary" style="margin: 10px 0;">Lấy dữ liệu từ API tùy chỉnh</button>
@@ -707,14 +671,6 @@
                     <div class="collapsible-content">
                         <h4>Mô tả</h4>
                         <p>API này cung cấp thông tin được tối ưu cho phần header của website, bao gồm tên công ty, thông tin liên hệ, mạng xã hội và logo.</p>
-                        
-                        <h4>Nguồn dữ liệu mới</h4>
-                        <p>Dữ liệu điều hướng (navigation) giờ đây được lấy trực tiếp từ phần <code>navItems</code> của global <code>header</code> trong Payload CMS:</p>
-                        <ul>
-                            <li>Các liên kết được cập nhật bởi quản trị viên tại <code>/admin/globals/header</code></li>
-                            <li>API tự động chuyển đổi từ định dạng <code>navItems</code> sang định dạng <code>mainLinks/moreLinks</code> mà frontend cần</li>
-                            <li>Mọi thay đổi trong admin sẽ được hiển thị ngay lập tức trên frontend</li>
-                        </ul>
                         
                         <h4>Endpoint</h4>
                         <div class="url-display">GET /api/header-info</div>
@@ -748,7 +704,6 @@
                         <p>API này cung cấp dữ liệu được tối ưu cho phần header, bao gồm cả thông tin điều hướng. So với API company-info, API này:</p>
                         <ul>
                             <li>Bao gồm thông tin điều hướng (navigation) sử dụng cho thanh navbar</li>
-                            <li>Lấy dữ liệu điều hướng từ global <code>header</code> để quản trị viên có thể dễ dàng cập nhật</li>
                             <li>Có đầy đủ các mạng xã hội và thông tin liên hệ cần thiết</li>
                             <li>Có định dạng tối ưu hơn cho việc sử dụng trong frontend</li>
                         </ul>
@@ -756,83 +711,10 @@
                         <h4>Sử dụng Navigation Links</h4>
                         <p>Khi nhấn nút "Lấy dữ liệu từ API", bạn sẽ thấy phần "Xem trước Điều hướng" hiển thị danh sách các liên kết từ API theo 2 loại:</p>
                         <ul>
-                            <li><strong>Menu Chính</strong>: Các liên kết chính hiển thị trong thanh điều hướng chính (được chuyển đổi từ <code>navItems</code> của global <code>header</code>)</li>
+                            <li><strong>Menu Chính</strong>: Các liên kết chính hiển thị trong thanh điều hướng chính</li>
                             <li><strong>Menu Phụ</strong>: Các liên kết bổ sung có thể hiển thị trong menu dropdown hoặc phần "Xem thêm"</li>
                         </ul>
                         <p>Mỗi liên kết bao gồm <strong>title</strong> (văn bản hiển thị) và <strong>routeKey</strong> (khóa định danh cho route).</p>
-                        
-                        <h4>Cách thức cập nhật liên kết:</h4>
-                        <ol>
-                            <li>Đăng nhập vào bảng quản trị tại <code>/admin</code></li>
-                            <li>Điều hướng tới <code>Globals</code> → <code>Header</code></li>
-                            <li>Cập nhật mục <code>Navigation Items</code></li>
-                            <li>Lưu thay đổi, các liên kết mới sẽ tự động xuất hiện trên website</li>
-                        </ol>
-                        
-                        <h4>Sử dụng trong Frontend</h4>
-                        <p>Dưới đây là ví dụ về cách sử dụng API này trong các dự án frontend:</p>
-                        
-                        <h5>Ví dụ với React/Next.js:</h5>
-                        <pre style="font-size: 12px; line-height: 1.3;">
-// Lấy dữ liệu header
-const fetchHeaderInfo = async () => {
-  const response = await fetch('/api/header-info');
-  const data = await response.json();
-  return data;
-};
-
-// Sử dụng trong component
-const Header = ({ headerData }) => {
-  return (
-    <header>
-      <div className="logo">
-        {headerData.logo && (
-          <img src={headerData.logo.url} alt={headerData.logo.alt} />
-        )}
-      </div>
-      
-      <nav>
-        <ul>
-          {headerData.navigation.mainLinks.map((link) => (
-            <li key={link.routeKey}>
-              <a href={`/${link.routeKey.toLowerCase()}`}>{link.title}</a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </header>
-  );
-};</pre>
-                        
-                        <h5>Ví dụ với Vanilla JavaScript:</h5>
-                        <pre style="font-size: 12px; line-height: 1.3;">
-// Lấy dữ liệu header
-async function loadHeaderInfo() {
-  try {
-    const response = await fetch('/api/header-info');
-    const data = await response.json();
-    
-    // Render logo
-    if (data.logo && data.logo.url) {
-      document.getElementById('companyLogo').src = data.logo.url;
-      document.getElementById('companyLogo').alt = data.logo.alt || data.companyName;
-    }
-    
-    // Render navigation
-    const navContainer = document.getElementById('mainNav');
-    data.navigation.mainLinks.forEach(link => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.href = `/${link.routeKey.toLowerCase()}`;
-      a.textContent = link.title;
-      li.appendChild(a);
-      navContainer.appendChild(li);
-    });
-  } catch (error) {
-    console.error('Lỗi khi tải header:', error);
-  }
-}
-</pre>
                     </div>
                 </div>
                 
@@ -1021,24 +903,10 @@ async function loadHeaderInfo() {
                     statusEl.textContent = 'Thành công! Đã lấy dữ liệu.';
                     statusEl.className = 'status success';                    // Display logo if available
                     if (data.logo && data.logo.url) {
-                        // Fix the URL construction for the logo
-                        let logoUrl = data.logo.url;
-                        
-                        // If URL doesn't start with http or https, ensure it has the correct domain
-                        if (!logoUrl.startsWith('http')) {
-                            // Remove any leading slash to avoid double slashes
-                            const path = logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl;
-                            
-                            // Use localhost domain when on file protocol, otherwise use current origin
-                            logoUrl = isFileProtocol ? 
-                                'http://localhost:3000' + path : 
-                                window.location.origin + path;
-                        }
-                        
                         logoContainer.innerHTML = `
                             <h3>Logo Công Ty:</h3>
-                            <img src="${logoUrl}" alt="${data.logo.alt || 'Logo Công Ty'}">
-                            <p>URL Logo: ${logoUrl}</p>
+                            <img src="${data.logo.url}" alt="${data.logo.alt || 'Logo Công Ty'}">
+                            <p>URL Logo: ${data.logo.url}</p>
                         `;
                     } else {
                         logoContainer.innerHTML = `
@@ -1203,26 +1071,13 @@ async function loadHeaderInfo() {
                 if (response.ok) {
                     statusEl.textContent = 'Thành công! Đã lấy dữ liệu.';
                     statusEl.className = 'status success';
-                      // Display logo if available
+                    
+                    // Display logo if available
                     if (data.logo && data.logo.url) {
-                        // Fix the URL construction for the logo
-                        let logoUrl = data.logo.url;
-                        
-                        // If URL doesn't start with http or https, ensure it has the correct domain
-                        if (!logoUrl.startsWith('http')) {
-                            // Remove any leading slash to avoid double slashes
-                            const path = logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl;
-                            
-                            // Use localhost domain when on file protocol, otherwise use current origin
-                            logoUrl = isFileProtocol ? 
-                                'http://localhost:3000' + path : 
-                                window.location.origin + path;
-                        }
-                        
                         logoContainer.innerHTML = `
                             <h3>Logo Công Ty:</h3>
-                            <img src="${logoUrl}" alt="${data.logo.alt || 'Logo Công Ty'}">
-                            <p>URL Logo: ${logoUrl}</p>
+                            <img src="${data.logo.url}" alt="Logo Công Ty">
+                            <p>URL Logo: ${data.logo.url}</p>
                         `;
                     } else {
                         logoContainer.innerHTML = `
