@@ -1,4 +1,3 @@
-// storage-adapter-import-placeholder
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 
 import sharp from 'sharp' // sharp-import
@@ -63,13 +62,14 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',  }),  collections: [Pages, Posts, Media, Categories, Users, ContactSubmissions],
-  cors: {
+    url: process.env.DATABASE_URI || '',  }),  collections: [Pages, Posts, Media, Categories, Users, ContactSubmissions],  cors: {
     origins: [
       getServerSideURL(),                                    // Backend URL
-      process.env.FRONTEND_URL || 'http://localhost:5173',   // Frontend Vite URL
+      process.env.FRONTEND_URL || 'http://localhost:5173',   // Default Frontend Vite URL
+      'http://localhost:8080', 'http://localhost:8081',                              // Your custom frontend port
       // Thêm domain production nếu cần
-    ].filter(Boolean),    headers: ['authorization', 'content-type', 'x-custom-header'], // Thêm headers cần thiết
+    ].filter(Boolean),    
+    headers: ['authorization', 'content-type', 'x-custom-header'], // Thêm headers cần thiết
   },
   globals: [Header, Footer, CompanyInfo],
   plugins: [
@@ -77,10 +77,84 @@ export default buildConfig({
     // storage-adapter-placeholder
   ],
   secret: process.env.PAYLOAD_SECRET,
-  sharp,
-  typescript: {
+  sharp,  typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
-  },
+  },  endpoints: [
+    // Health check endpoint for frontend connectivity testing
+    {
+      path: '/health',
+      method: 'get',
+      handler: async (req) => {
+        try {
+          // Prepare health data
+          const healthData = {
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            server: 'VRC Backend API',
+            environment: process.env.NODE_ENV || 'development',
+            apiVersion: '1.0.0',
+          };
+          
+          // For HEAD requests, just return empty response
+          if (req.method?.toLowerCase() === 'head') {
+            return new Response(null, { 
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'X-Health-Status': 'ok',
+                'X-Backend-Available': 'true',
+                'X-Health-Timestamp': new Date().toISOString()
+              }
+            });
+          }
+          
+          // For GET requests, return the full health data
+          return Response.json(healthData, {
+            status: 200,
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'X-Health-Status': 'ok',
+              'X-Backend-Available': 'true',
+              'X-Health-Timestamp': new Date().toISOString()
+            }
+          });
+        } catch (error) {
+          // For error cases, still return a valid response
+          const errorData = {
+            status: 'warning',
+            message: 'Health check experienced an error but the server is still running',
+            timestamp: new Date().toISOString(),
+          };
+          
+          // For HEAD requests
+          if (req.method?.toLowerCase() === 'head') {
+            return new Response(null, { 
+              status: 200,
+              headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'X-Health-Status': 'warning',
+                'X-Backend-Available': 'true',
+                'X-Health-Timestamp': new Date().toISOString()
+              }
+            });
+          }
+          
+          // For GET requests
+          return Response.json(errorData, {
+            status: 200,
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'X-Health-Status': 'warning',
+              'X-Backend-Available': 'true',
+              'X-Health-Timestamp': new Date().toISOString()
+            }
+          });
+        }
+      }
+    },
+  ],
   jobs: {
     access: {
       run: ({ req }: { req: PayloadRequest }): boolean => {

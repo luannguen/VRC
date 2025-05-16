@@ -86,11 +86,18 @@ export const CompanyInfo: GlobalConfig = {
       name: 'socialMedia',
       label: 'Mạng xã hội',
       type: 'group',
-      fields: [
-        {
+      fields: [        {
           name: 'facebook',
           label: 'Facebook',
           type: 'text',
+        },
+        {
+          name: 'zalo',
+          label: 'Zalo',
+          type: 'text',
+          admin: {
+            description: 'Đường dẫn đến trang Zalo của công ty (zalo.me/your_id)'
+          }
         },
         {
           name: 'twitter',
@@ -147,8 +154,7 @@ export const CompanyInfo: GlobalConfig = {
       name: 'additionalInfo',
       label: 'Thông tin bổ sung',
       type: 'richText',
-      editor: defaultLexical,
-    },
+      editor: defaultLexical,    },
     {
       name: 'logo',
       label: 'Logo công ty',

@@ -379,15 +379,13 @@
         <h1>VRC API Testing Suite</h1>
         <p>Công cụ kiểm thử API cho hệ thống VRC</p>
     </div>
-    
-    <div class="tabs">
+      <div class="tabs">
         <div class="tab active" data-tab="company-info">Thông Tin Công Ty</div>
+        <div class="tab" data-tab="header-info">Thông Tin Header</div>
         <div class="tab" data-tab="contact-form">Form Liên Hệ</div>
         <div class="tab" data-tab="auth-test">Kiểm Tra Xác Thực</div>
         <div class="tab" data-tab="docs">Tài Liệu API</div>
-    </div>
-    
-    <!-- COMPANY INFO API TAB -->
+    </div>    <!-- COMPANY INFO API TAB -->
     <div class="tab-content active" id="company-info">
         <div class="card">
             <div class="card-header">
@@ -432,6 +430,68 @@
                     <div class="image-preview" id="logoContainer">
                         <h3>Logo Công Ty:</h3>
                         <p>(Chưa có logo)</p>
+                    </div>
+                </div>
+            </div>        </div>
+    </div>
+    
+    <!-- HEADER INFO API TAB -->
+    <div class="tab-content" id="header-info">
+        <div class="card">
+            <div class="card-header">
+                <h2>Kiểm Tra API Thông Tin Header</h2>
+            </div>
+            <div class="card-body">
+                <div class="docs-section">
+                    <h3>Thông tin API</h3>
+                    <p>API này cung cấp thông tin được tối ưu cho phần header website, bao gồm tên công ty, logo, thông tin liên hệ và mạng xã hội.</p>
+                    <p><strong>Chức năng mới:</strong> Dữ liệu điều hướng (navigation) được lấy trực tiếp từ phần <code>navItems</code> của global <code>header</code> trong bảng quản trị.</p>
+                    <p>Khi quản trị viên cập nhật thông tin điều hướng trong Admin UI (tại <code>/admin/globals/header</code>), các thay đổi sẽ tự động được áp dụng cho frontend thông qua API này.</p>
+                    <div class="url-display">
+                        <span class="method get">GET</span> /api/header-info
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <h3>Tùy chọn API:</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="headerInfoUseToken">
+                        <label for="headerInfoUseToken">Sử dụng Bearer Token</label>
+                    </div>
+                    <input type="text" id="headerInfoBearerToken" placeholder="Nhập token ở đây" value="test-token">
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="headerInfoUseCookie">
+                        <label for="headerInfoUseCookie">Sử dụng Cookie xác thực</label>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button id="fetchHeaderInfo" class="btn">Lấy Dữ Liệu Header Info</button>
+                    <button id="testHeaderInfoCors" class="btn btn-secondary">Kiểm Tra CORS</button>
+                </div>
+                  <div class="response-container">
+                    <div id="headerInfoStatus" class="status"></div>
+                    <h3>Kết quả:</h3>
+                    <pre id="headerInfoResponse">Nhấn nút "Lấy Dữ Liệu Header Info" để xem kết quả...</pre>
+                    
+                    <div class="image-preview" id="headerInfoLogoContainer">
+                        <h3>Logo Công Ty:</h3>
+                        <p>(Chưa có logo)</p>
+                    </div>
+                    
+                    <div id="navigationPreview" style="display: none; margin-top: 24px; padding: 20px; border: 1px solid var(--border); border-radius: 8px;">
+                        <h3 style="margin-top: 0;">Xem trước Điều hướng (Navigation):</h3>
+                        <div style="display: flex; margin-top: 16px;">
+                            <div style="flex: 1;">
+                                <h4>Menu Chính:</h4>
+                                <ul id="mainNavLinks" style="list-style: none; padding: 0;"></ul>
+                            </div>
+                            <div style="flex: 1;">
+                                <h4>Menu Phụ (Thêm):</h4>
+                                <ul id="moreNavLinks" style="list-style: none; padding: 0;"></ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -546,8 +606,7 @@
                 <h2>Tài Liệu API</h2>
             </div>
             <div class="card-body">
-                <h3>Các API Endpoint Có Sẵn</h3>
-                <ul class="endpoint-list">
+                <h3>Các API Endpoint Có Sẵn</h3>                <ul class="endpoint-list">
                     <li>
                         <span class="method get">GET</span> 
                         <strong>/api/globals/company-info</strong> - Lấy thông tin công ty (API chính thức)
@@ -557,13 +616,20 @@
                         <strong>/api/company-info</strong> - Lấy thông tin công ty (API tùy chỉnh)
                     </li>
                     <li>
+                        <span class="method get">GET</span> 
+                        <strong>/api/header-info</strong> - Lấy thông tin cho phần header website
+                    </li>
+                    <li>
+                        <span class="method get">GET</span> 
+                        <strong>/api/health</strong> - Kiểm tra tình trạng hoạt động của backend
+                    </li>
+                    <li>
                         <span class="method post">POST</span> 
                         <strong>/api/contact</strong> - Gửi yêu cầu liên hệ
                     </li>
                 </ul>
                 
-                <div class="collapsible">
-                    <div class="collapsible-header">API Company Info</div>
+                <div class="collapsible">                    <div class="collapsible-header">API Company Info</div>
                     <div class="collapsible-content">
                         <h4>Mô tả</h4>
                         <p>API này cung cấp thông tin về công ty, bao gồm tên, thông tin liên hệ, mạng xã hội và logo.</p>
@@ -578,33 +644,220 @@
                         <h4>Headers</h4>
                         <p><code>Authorization: Bearer {token}</code> - Tùy chọn, nếu API yêu cầu xác thực</p>
                         
-                        <h4>Phản hồi</h4>
-                        <pre>{
-  "companyName": "VRC company",
-  "companyShortName": "VRC",
-  "companyDescription": "Mô tả về công ty",
-  "contactSection": {
-    "address": "123 Nguyễn Văn Linh, Quận 7, TP.HCM",
-    "phone": "0123456789",
-    "email": "contact@vrc.com",
-    ...
-  },
-  "socialMedia": { ... },
-  "maps": { ... },
+                        <h4>Ví dụ Response:</h4>
+                        <pre style="font-size: 12px; line-height: 1.3;">
+{
+  "companyName": "Công ty TNHH VRC",
   "logo": {
-    "id": "media-id",
-    "url": "/media/path-to-logo.jpg",
-    ...
+    "url": "/media/logo.svg",
+    "alt": "Logo VRC"
   },
-  ...
+  "contact": {
+    "address": "123 Đường ABC, Quận XYZ, TP. HCM",
+    "phone": "0123456789",
+    "email": "info@vrc.com",
+    "workingHours": "8:00 - 17:30, Thứ 2 - Thứ 6"
+  },
+  "social": {
+    "facebook": "https://facebook.com/vrc",
+    "youtube": "https://youtube.com/vrc",
+    "zalo": "https://zalo.me/vrc"
+  },
+  "navigation": {
+    "mainLinks": [
+      {
+        "title": "Trang chủ",
+        "routeKey": "HOME"
+      },
+      {
+        "title": "Giới thiệu",
+        "routeKey": "ABOUT"
+      },
+      {
+        "title": "Dịch vụ",
+        "routeKey": "SERVICES"
+      }
+    ],
+    "moreLinks": [
+      {
+        "title": "Tin tức",
+        "routeKey": "NEWS"
+      },
+      {
+        "title": "Liên hệ",
+        "routeKey": "CONTACT"
+      }
+    ]
+  }
 }</pre>
+                        <p><em>Lưu ý: Các liên kết trong <code>navigation</code> được tự động chuyển đổi từ <code>navItems</code> của global <code>header</code> trong Payload CMS.</em></p>
+                        
+                        <div class="btn-group">
+                            <button id="docsFetchOfficialApi" class="btn" style="margin: 10px 0;">Lấy dữ liệu từ API chính thức</button>
+                            <button id="docsFetchCustomApi" class="btn btn-secondary" style="margin: 10px 0;">Lấy dữ liệu từ API tùy chỉnh</button>
+                        </div>
+                        <div id="docsCompanyInfoResult" style="display: none;">
+                            <h4>Kết quả từ API:</h4>
+                            <pre id="docsCompanyInfoResponse">Nhấn nút "Lấy dữ liệu từ API" để xem kết quả...</pre>
+                        </div>
+                    </div>
+                    </div>                </div>
+                
+                <div class="collapsible">                    <div class="collapsible-header">API Header Info</div>
+                    <div class="collapsible-content">
+                        <h4>Mô tả</h4>
+                        <p>API này cung cấp thông tin được tối ưu cho phần header của website, bao gồm tên công ty, thông tin liên hệ, mạng xã hội và logo.</p>
+                        
+                        <h4>Nguồn dữ liệu mới</h4>
+                        <p>Dữ liệu điều hướng (navigation) giờ đây được lấy trực tiếp từ phần <code>navItems</code> của global <code>header</code> trong Payload CMS:</p>
+                        <ul>
+                            <li>Các liên kết được cập nhật bởi quản trị viên tại <code>/admin/globals/header</code></li>
+                            <li>API tự động chuyển đổi từ định dạng <code>navItems</code> sang định dạng <code>mainLinks/moreLinks</code> mà frontend cần</li>
+                            <li>Mọi thay đổi trong admin sẽ được hiển thị ngay lập tức trên frontend</li>
+                        </ul>
+                        
+                        <h4>Endpoint</h4>
+                        <div class="url-display">GET /api/header-info</div>
+                        
+                        <h4>Tham số</h4>
+                        <p>Không có tham số URL.</p>
+                        
+                        <h4>Headers</h4>
+                        <p><code>Authorization: Bearer {token}</code> - Tùy chọn, nếu API yêu cầu xác thực</p>
+                        
+                        <button id="docsFetchHeaderInfo" class="btn" style="margin: 10px 0;">Lấy dữ liệu từ API</button>
+                        <div id="docsHeaderInfoResult" style="display: none;">
+                            <h4>Kết quả từ API:</h4>
+                            <pre id="docsHeaderInfoResponse">Nhấn nút "Lấy dữ liệu từ API" để xem kết quả...</pre>
+                            
+                            <div id="docsHeaderNavigationPreview" style="display: none; margin-top: 24px; padding: 20px; border: 1px solid var(--border); border-radius: 8px;">
+                                <h4 style="margin-top: 0;">Xem trước Điều hướng (Navigation):</h4>
+                                <div style="display: flex; margin-top: 16px;">
+                                    <div style="flex: 1;">
+                                        <h5>Menu Chính:</h5>
+                                        <ul id="docsMainNavLinks" style="list-style: none; padding: 0;"></ul>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h5>Menu Phụ (Thêm):</h5>
+                                        <ul id="docsMoreNavLinks" style="list-style: none; padding: 0;"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                          <h4>Điểm khác biệt</h4>
+                        <p>API này cung cấp dữ liệu được tối ưu cho phần header, bao gồm cả thông tin điều hướng. So với API company-info, API này:</p>
+                        <ul>
+                            <li>Bao gồm thông tin điều hướng (navigation) sử dụng cho thanh navbar</li>
+                            <li>Lấy dữ liệu điều hướng từ global <code>header</code> để quản trị viên có thể dễ dàng cập nhật</li>
+                            <li>Có đầy đủ các mạng xã hội và thông tin liên hệ cần thiết</li>
+                            <li>Có định dạng tối ưu hơn cho việc sử dụng trong frontend</li>
+                        </ul>
+                        
+                        <h4>Sử dụng Navigation Links</h4>
+                        <p>Khi nhấn nút "Lấy dữ liệu từ API", bạn sẽ thấy phần "Xem trước Điều hướng" hiển thị danh sách các liên kết từ API theo 2 loại:</p>
+                        <ul>
+                            <li><strong>Menu Chính</strong>: Các liên kết chính hiển thị trong thanh điều hướng chính (được chuyển đổi từ <code>navItems</code> của global <code>header</code>)</li>
+                            <li><strong>Menu Phụ</strong>: Các liên kết bổ sung có thể hiển thị trong menu dropdown hoặc phần "Xem thêm"</li>
+                        </ul>
+                        <p>Mỗi liên kết bao gồm <strong>title</strong> (văn bản hiển thị) và <strong>routeKey</strong> (khóa định danh cho route).</p>
+                        
+                        <h4>Cách thức cập nhật liên kết:</h4>
+                        <ol>
+                            <li>Đăng nhập vào bảng quản trị tại <code>/admin</code></li>
+                            <li>Điều hướng tới <code>Globals</code> → <code>Header</code></li>
+                            <li>Cập nhật mục <code>Navigation Items</code></li>
+                            <li>Lưu thay đổi, các liên kết mới sẽ tự động xuất hiện trên website</li>
+                        </ol>
+                        
+                        <h4>Sử dụng trong Frontend</h4>
+                        <p>Dưới đây là ví dụ về cách sử dụng API này trong các dự án frontend:</p>
+                        
+                        <h5>Ví dụ với React/Next.js:</h5>
+                        <pre style="font-size: 12px; line-height: 1.3;">
+// Lấy dữ liệu header
+const fetchHeaderInfo = async () => {
+  const response = await fetch('/api/header-info');
+  const data = await response.json();
+  return data;
+};
+
+// Sử dụng trong component
+const Header = ({ headerData }) => {
+  return (
+    <header>
+      <div className="logo">
+        {headerData.logo && (
+          <img src={headerData.logo.url} alt={headerData.logo.alt} />
+        )}
+      </div>
+      
+      <nav>
+        <ul>
+          {headerData.navigation.mainLinks.map((link) => (
+            <li key={link.routeKey}>
+              <a href={`/${link.routeKey.toLowerCase()}`}>{link.title}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </header>
+  );
+};</pre>
+                        
+                        <h5>Ví dụ với Vanilla JavaScript:</h5>
+                        <pre style="font-size: 12px; line-height: 1.3;">
+// Lấy dữ liệu header
+async function loadHeaderInfo() {
+  try {
+    const response = await fetch('/api/header-info');
+    const data = await response.json();
+    
+    // Render logo
+    if (data.logo && data.logo.url) {
+      document.getElementById('companyLogo').src = data.logo.url;
+      document.getElementById('companyLogo').alt = data.logo.alt || data.companyName;
+    }
+    
+    // Render navigation
+    const navContainer = document.getElementById('mainNav');
+    data.navigation.mainLinks.forEach(link => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = `/${link.routeKey.toLowerCase()}`;
+      a.textContent = link.title;
+      li.appendChild(a);
+      navContainer.appendChild(li);
+    });
+  } catch (error) {
+    console.error('Lỗi khi tải header:', error);
+  }
+}
+</pre>
+                    </div>
+                </div>
+                
+                <div class="collapsible">                    <div class="collapsible-header">API Health Check</div>
+                    <div class="collapsible-content">
+                        <h4>Mô tả</h4>
+                        <p>API này cung cấp thông tin về tình trạng hoạt động của backend.</p>
+                          <h4>Endpoint</h4>
+                        <div class="url-display">GET /api/health</div>
+                        <div class="url-display">HEAD /api/health</div>
+                        
+                        <h4>Tham số</h4>
+                        <p>Không có tham số URL.</p>
+                        
+                        <button id="docsFetchHealth" class="btn" style="margin: 10px 0;">Lấy dữ liệu từ API</button>
+                        <div id="docsHealthResult" style="display: none;">
+                            <h4>Kết quả từ API:</h4>
+                            <pre id="docsHealthResponse">Đang tải...</pre>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="collapsible">
                     <div class="collapsible-header">API Contact Form</div>
-                    <div class="collapsible-content">
-                        <h4>Mô tả</h4>
+                    <div class="collapsible-content">                        <h4>Mô tả</h4>
                         <p>API này cho phép gửi yêu cầu liên hệ từ người dùng vào hệ thống.</p>
                         
                         <h4>Endpoint</h4>
@@ -619,21 +872,14 @@
   "message": "Nội dung tin nhắn"
 }</pre>
                         
-                        <h4>Phản hồi thành công</h4>
-                        <pre>{
-  "success": true,
-  "message": "Yêu cầu liên hệ đã được gửi thành công",
-  "submission": {
-    "id": "submission-id",
-    "createdAt": "2025-05-15T10:30:00.000Z"
-  }
-}</pre>
+                        <div class="btn-group">
+                            <button id="testContactForm" class="btn" style="margin: 10px 0;">Mở form gửi yêu cầu liên hệ</button>
+                        </div>
                         
-                        <h4>Phản hồi lỗi</h4>
-                        <pre>{
-  "success": false,
-  "message": "Thông báo lỗi cụ thể"
-}</pre>
+                        <div id="docsContactFormResult" style="display: none;">
+                            <h4>Kết quả gửi:</h4>
+                            <pre id="docsContactFormResponse">Sử dụng form để xem kết quả gửi yêu cầu...</pre>
+                        </div>
                     </div>
                 </div>
                   <div class="collapsible">
@@ -693,9 +939,7 @@
             header.addEventListener('click', () => {
                 header.classList.toggle('active');
             });
-        });
-        
-        // Check if running from file:// protocol and show warning
+        });          // Check if running from file:// protocol and show warning
         const isFileProtocol = window.location.protocol === 'file:';
         
         if (isFileProtocol) {
@@ -722,6 +966,172 @@
         
         // API base URL - Use the server URL if specified, otherwise use relative path
         const API_BASE = isFileProtocol ? 'http://localhost:3000/api' : '/api';
+        
+        // Header Info API Test
+        document.getElementById('fetchHeaderInfo').addEventListener('click', async () => {
+            await fetchHeaderData('header-info');
+        });
+        
+        // Test CORS for Header Info API
+        document.getElementById('testHeaderInfoCors').addEventListener('click', async () => {
+            await testCorsForEndpoint('header-info');
+        });
+        
+        // Function to fetch header info data
+        async function fetchHeaderData(endpoint) {
+            const statusEl = document.getElementById('headerInfoStatus');
+            const responseEl = document.getElementById('headerInfoResponse');
+            const logoContainer = document.getElementById('headerInfoLogoContainer');
+            
+            statusEl.textContent = 'Đang lấy dữ liệu...';
+            statusEl.className = 'status';
+            
+            try {
+                // Check if we're on file protocol
+                if (isFileProtocol) {
+                    statusEl.textContent = 'Lỗi: Không thể gọi API từ giao thức file://';
+                    statusEl.className = 'status error';
+                    responseEl.textContent = 'Lỗi CORS: Trình duyệt ngăn chặn các yêu cầu API khi mở file HTML trực tiếp từ hệ thống file.\n\nVui lòng xem hướng dẫn khắc phục ở banner cảnh báo phía trên.';
+                    return;
+                }
+                
+                // Prepare headers
+                const headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                
+                // Add authentication if selected
+                if (document.getElementById('headerInfoUseToken').checked) {
+                    const token = document.getElementById('headerInfoBearerToken').value;
+                    headers.append('Authorization', `Bearer ${token}`);
+                }
+                
+                // Make the request
+                const response = await fetch(`${API_BASE}/${endpoint}`, {
+                    method: 'GET',
+                    headers: headers,
+                    // Include credentials for cookie-based auth
+                    credentials: document.getElementById('headerInfoUseCookie').checked ? 'include' : 'same-origin'
+                });
+                
+                const data = await response.json();
+                
+                // Format the JSON with indentation for better readability
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                  if (response.ok) {
+                    statusEl.textContent = 'Thành công! Đã lấy dữ liệu.';
+                    statusEl.className = 'status success';                    // Display logo if available
+                    if (data.logo && data.logo.url) {
+                        logoContainer.innerHTML = `
+                            <h3>Logo Công Ty:</h3>
+                            <img src="${data.logo.url}" alt="${data.logo.alt || 'Logo Công Ty'}">
+                            <p>URL Logo: ${data.logo.url}</p>
+                        `;
+                    } else {
+                        logoContainer.innerHTML = `
+                            <h3>Logo Công Ty:</h3>
+                            <p>Không tìm thấy logo trong dữ liệu</p>
+                        `;
+                    }
+                    
+                    // Display navigation links if available
+                    const navigationPreview = document.getElementById('navigationPreview');
+                    const mainNavLinks = document.getElementById('mainNavLinks');
+                    const moreNavLinks = document.getElementById('moreNavLinks');
+                    
+                    if (data.navigation && (data.navigation.mainLinks || data.navigation.moreLinks)) {
+                        // Show navigation preview section
+                        navigationPreview.style.display = 'block';
+                        
+                        // Populate main links
+                        if (data.navigation.mainLinks && data.navigation.mainLinks.length > 0) {
+                            mainNavLinks.innerHTML = data.navigation.mainLinks.map(link => `
+                                <li style="padding: 8px 16px; margin-bottom: 8px; background-color: #f8fafc; border-radius: 4px;">
+                                    <strong>${link.title}</strong> <span style="color: #64748b; font-size: 0.9em;">(${link.routeKey})</span>
+                                </li>
+                            `).join('');
+                        } else {
+                            mainNavLinks.innerHTML = '<li>Không có liên kết chính</li>';
+                        }
+                        
+                        // Populate more links
+                        if (data.navigation.moreLinks && data.navigation.moreLinks.length > 0) {
+                            moreNavLinks.innerHTML = data.navigation.moreLinks.map(link => `
+                                <li style="padding: 8px 16px; margin-bottom: 8px; background-color: #f8fafc; border-radius: 4px;">
+                                    <strong>${link.title}</strong> <span style="color: #64748b; font-size: 0.9em;">(${link.routeKey})</span>
+                                </li>
+                            `).join('');
+                        } else {
+                            moreNavLinks.innerHTML = '<li>Không có liên kết phụ</li>';
+                        }
+                    } else {
+                        // Hide navigation preview if no links
+                        navigationPreview.style.display = 'none';
+                    }
+                } else {
+                    statusEl.textContent = `Lỗi: ${data.message || 'Lỗi không xác định'}`;
+                    statusEl.className = 'status error';
+                    logoContainer.innerHTML = `
+                        <h3>Logo Công Ty:</h3>
+                        <p>Không thể tải logo do lỗi API</p>
+                    `;
+                }
+            } catch (error) {
+                statusEl.textContent = `Lỗi mạng: ${error.message}`;
+                statusEl.className = 'status error';
+                responseEl.textContent = error.toString();
+                logoContainer.innerHTML = `
+                    <h3>Logo Công Ty:</h3>
+                    <p>Không thể tải logo do lỗi mạng</p>
+                `;
+            }
+        }
+        
+        // Function to test CORS for an endpoint
+        async function testCorsForEndpoint(endpoint) {
+            const statusEl = document.getElementById('headerInfoStatus');
+            const responseEl = document.getElementById('headerInfoResponse');
+            
+            statusEl.textContent = 'Đang kiểm tra CORS...';
+            statusEl.className = 'status';
+            
+            try {
+                // Check if we're on file protocol
+                if (isFileProtocol) {
+                    statusEl.textContent = 'Lỗi: Không thể gọi API từ giao thức file://';
+                    statusEl.className = 'status error';
+                    responseEl.textContent = 'Lỗi CORS: Trình duyệt ngăn chặn các yêu cầu API khi mở file HTML trực tiếp từ hệ thống file.\n\nVui lòng xem hướng dẫn khắc phục ở banner cảnh báo phía trên.';
+                    return;
+                }
+                
+                // Send OPTIONS request to test CORS
+                const response = await fetch(`${API_BASE}/${endpoint}`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:5173', // Frontend origin
+                        'Access-Control-Request-Method': 'GET'
+                    }
+                });
+                
+                // Get all headers as string
+                const headersText = Array.from(response.headers.entries())
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join('\n');
+                
+                if (response.ok || response.status === 204) {
+                    statusEl.textContent = 'CORS được cấu hình đúng!';
+                    statusEl.className = 'status success';
+                    responseEl.textContent = `Status: ${response.status} ${response.statusText}\n\nHeaders:\n${headersText}`;
+                } else {
+                    statusEl.textContent = `Lỗi CORS: ${response.status} ${response.statusText}`;
+                    statusEl.className = 'status error';
+                    responseEl.textContent = `Status: ${response.status} ${response.statusText}\n\nHeaders:\n${headersText}`;
+                }
+            } catch (error) {
+                statusEl.textContent = `Lỗi mạng: ${error.message}`;
+                statusEl.className = 'status error';
+                responseEl.textContent = error.toString();
+            }
+        }
         
         // Company Info API Test - Official API
         document.getElementById('fetchOfficialApi').addEventListener('click', async () => {
@@ -910,6 +1320,141 @@
         
         // Initialize cookie info on page load
         document.getElementById('cookieInfo').textContent = document.cookie || '(Không tìm thấy cookie non-HttpOnly)';
+        
+        // Add doc functionality for fetching real API data
+        document.getElementById('docsFetchHeaderInfo')?.addEventListener('click', async () => {
+            const responseEl = document.getElementById('docsHeaderInfoResponse');
+            const resultContainer = document.getElementById('docsHeaderInfoResult');
+            const navigationPreview = document.getElementById('docsHeaderNavigationPreview');
+            
+            resultContainer.style.display = 'block';
+            responseEl.textContent = 'Đang tải dữ liệu...';
+            
+            try {
+                // Check if we're on file protocol
+                if (isFileProtocol) {
+                    responseEl.textContent = 'Lỗi: Không thể gọi API từ giao thức file://.\nVui lòng xem hướng dẫn khắc phục ở banner cảnh báo phía trên.';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/header-info`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+                
+                // Display navigation links if available
+                const mainNavLinks = document.getElementById('docsMainNavLinks');
+                const moreNavLinks = document.getElementById('docsMoreNavLinks');
+                
+                if (data.navigation && (data.navigation.mainLinks || data.navigation.moreLinks)) {
+                    // Show navigation preview section
+                    navigationPreview.style.display = 'block';
+                    
+                    // Populate main links
+                    if (data.navigation.mainLinks && data.navigation.mainLinks.length > 0) {
+                        mainNavLinks.innerHTML = data.navigation.mainLinks.map(link => `
+                            <li style="padding: 8px 16px; margin-bottom: 8px; background-color: #f8fafc; border-radius: 4px;">
+                                <strong>${link.title}</strong> <span style="color: #64748b; font-size: 0.9em;">(${link.routeKey})</span>
+                            </li>
+                        `).join('');
+                    } else {
+                        mainNavLinks.innerHTML = '<li>Không có liên kết chính</li>';
+                    }
+                    
+                    // Populate more links
+                    if (data.navigation.moreLinks && data.navigation.moreLinks.length > 0) {
+                        moreNavLinks.innerHTML = data.navigation.moreLinks.map(link => `
+                            <li style="padding: 8px 16px; margin-bottom: 8px; background-color: #f8fafc; border-radius: 4px;">
+                                <strong>${link.title}</strong> <span style="color: #64748b; font-size: 0.9em;">(${link.routeKey})</span>
+                            </li>
+                        `).join('');
+                    } else {
+                        moreNavLinks.innerHTML = '<li>Không có liên kết phụ</li>';
+                    }
+                } else {
+                    // Hide navigation preview if no links
+                    navigationPreview.style.display = 'none';
+                }
+            } catch (error) {
+                responseEl.textContent = `Lỗi: ${error.message}`;
+                navigationPreview.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('docsFetchCompanyInfo')?.addEventListener('click', async () => {
+            const responseEl = document.getElementById('docsCompanyInfoResponse');
+            const resultContainer = document.getElementById('docsCompanyInfoResult');
+            
+            resultContainer.style.display = 'block';
+            responseEl.textContent = 'Đang tải dữ liệu...';
+            
+            try {
+                // Check if we're on file protocol
+                if (isFileProtocol) {
+                    responseEl.textContent = 'Lỗi: Không thể gọi API từ giao thức file://.\nVui lòng xem hướng dẫn khắc phục ở banner cảnh báo phía trên.';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/company-info`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseEl.textContent = `Lỗi: ${error.message}`;
+            }
+        });
+          document.getElementById('docsFetchHealth')?.addEventListener('click', async () => {
+            const responseEl = document.getElementById('docsHealthResponse');
+            const resultContainer = document.getElementById('docsHealthResult');
+            
+            resultContainer.style.display = 'block';
+            responseEl.textContent = 'Đang tải dữ liệu...';
+            
+            try {
+                // Check if we're on file protocol
+                if (isFileProtocol) {
+                    responseEl.textContent = 'Lỗi: Không thể gọi API từ giao thức file://.\nVui lòng xem hướng dẫn khắc phục ở banner cảnh báo phía trên.';
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                responseEl.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseEl.textContent = `Lỗi: ${error.message}`;
+            }
+        });
+        
+        // Xử lý nút chuyển đến form liên hệ
+        document.getElementById('testContactForm')?.addEventListener('click', () => {
+            // Chuyển đến tab form liên hệ
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Kích hoạt tab contact-form
+            const contactTab = document.querySelector('.tab[data-tab="contact-form"]');
+            contactTab.classList.add('active');
+            document.getElementById('contact-form').classList.add('active');
+            
+            // Scroll đến form
+            document.getElementById('contactTestForm').scrollIntoView({ behavior: 'smooth' });
+        });
     </script>
 </body>
 </html>

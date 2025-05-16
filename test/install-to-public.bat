@@ -1,28 +1,37 @@
 @echo off
-echo Copying API Test file to backend public directory...
+echo Copying API Test files to backend public directory...
 
-set SOURCE_FILE=%~dp0api-test.html
+set SOURCE_DIR=%~dp0
 set DEST_DIR=E:\Download\vrc\backend\public
-set DEST_FILE=%DEST_DIR%\api-test.html
 
 if not exist "%DEST_DIR%" (
     mkdir "%DEST_DIR%"
     echo Created directory: %DEST_DIR%
 )
 
-copy /Y "%SOURCE_FILE%" "%DEST_FILE%"
+REM Copy HTML test file
+copy /Y "%SOURCE_DIR%api-test.html" "%DEST_DIR%\api-test.html"
+
+REM Copy JavaScript test files
+copy /Y "%SOURCE_DIR%test-health.js" "%DEST_DIR%\test-health.js"
+copy /Y "%SOURCE_DIR%test-header-info.js" "%DEST_DIR%\test-header-info.js"
+copy /Y "%SOURCE_DIR%test-all-endpoints.js" "%DEST_DIR%\test-all-endpoints.js"
 
 if %errorlevel% equ 0 (
     echo.
-    echo Success! The API test file has been copied to:
-    echo %DEST_FILE%
+    echo Success! The API test files have been copied to:
+    echo %DEST_DIR%
+    echo.    echo You can now access the HTML test via: http://localhost:3000/api-test.html
+    echo And run the JS tests with:
+    echo   node %DEST_DIR%\test-health.js
+    echo   node %DEST_DIR%\test-header-info.js
+    echo   node %DEST_DIR%\test-all-endpoints.js [--endpoint=name]
     echo.
-    echo You can now access it via: http://localhost:3000/api-test.html
     echo (Make sure your backend server is running)
     echo.
 ) else (
     echo.
-    echo Error copying file. Please check paths and permissions.
+    echo Error copying files. Please check paths and permissions.
     echo.
 )
 

@@ -10,7 +10,29 @@ This directory contains various test tools and utilities for the VRC project.
   - Provides authentication diagnostics
   - Includes API documentation
 
+- **test-health.js**: Tests the health endpoint of the backend API.
+  - Verifies the server is running and responding
+  - Checks for proper CORS headers
+  - Tests both GET and HEAD methods
+
+- **test-header-info.js**: Tests the header information endpoint.
+  - Validates the response format for website headers
+  - Verifies the correct company and contact information is returned
+  - Tests CORS functionality
+
+- **test-all-endpoints.js**: Comprehensive test script for all API endpoints.
+  - Tests all available API endpoints in a single run
+  - Provides detailed success/failure reporting
+  - Supports testing individual endpoints with command-line options
+  - Example usage: `node test-all-endpoints.js --endpoint=header-info`
+
 ## Utility Scripts
+
+- **run-api-tests.bat**: Comprehensive test runner that:
+  - Installs test files to the backend public directory
+  - Runs all individual test scripts in sequence
+  - Opens the API test page in your default browser
+  - Provides detailed output for all tests
 
 - **run-api-test.bat**: Opens the API test file in your default browser
 - **install-to-public.bat**: Copies the API test file to the backend's public directory so it can be accessed via the server

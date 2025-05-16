@@ -1,7 +1,8 @@
 {
-  "name": "",
+  "name": "vrc-backend",
   "version": "1.0.0",
-  "description": "Website template for Payload",
+  "private": true,
+  "description": "VRC Backend",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -16,7 +17,8 @@
     "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation next lint --fix",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "reinstall": "cross-env NODE_OPTIONS=--no-deprecation rm -rf node_modules && rm pnpm-lock.yaml && pnpm --ignore-workspace install",
-    "start": "cross-env NODE_OPTIONS=--no-deprecation next start"
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "test:health": "node src/endpoints/test-health.js"
   },
   "dependencies": {
     "@payloadcms/admin-bar": "3.33.0",
@@ -64,6 +66,7 @@
     "copyfiles": "^2.4.1",
     "eslint": "^9.16.0",
     "eslint-config-next": "15.3.0",
+    "node-fetch": "^3.3.2",
     "postcss": "^8.4.38",
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.3",

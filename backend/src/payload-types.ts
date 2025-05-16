@@ -1675,6 +1675,10 @@ export interface CompanyInfo {
   };
   socialMedia?: {
     facebook?: string | null;
+    /**
+     * Đường dẫn đến trang Zalo của công ty (zalo.me/your_id)
+     */
+    zalo?: string | null;
     twitter?: string | null;
     instagram?: string | null;
     linkedin?: string | null;
@@ -1777,6 +1781,7 @@ export interface CompanyInfoSelect<T extends boolean = true> {
     | T
     | {
         facebook?: T;
+        zalo?: T;
         twitter?: T;
         instagram?: T;
         linkedin?: T;
