@@ -66,9 +66,7 @@ export const seedTechnologies = async (payload: Payload) => {
     if (!defaultMediaId) {
       console.error('Failed to get default media ID. Please upload at least one media item first.');
       return;
-    }
-
-    // Sample technologies based on the frontend data
+    }    // Sample technologies based on the frontend data
     const technologies = [
       {
         name: "Inverter DC",
@@ -96,6 +94,87 @@ export const seedTechnologies = async (payload: Payload) => {
         featured: true,
         status: "published",
         order: 3,
+      },
+      // Partners
+      {
+        name: "Daikin",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Đối tác chiến lược cung cấp thiết bị điều hòa không khí và giải pháp điện lạnh chất lượng cao."),
+        website: "https://www.daikin.com",
+        featured: true,
+        status: "published",
+        order: 1,
+      },
+      {
+        name: "Carrier",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Nhà cung cấp hàng đầu về các giải pháp HVAC và hệ thống lạnh công nghiệp."),
+        website: "https://www.carrier.com",
+        featured: true,
+        status: "published",
+        order: 2,
+      },      {
+        name: "Mitsubishi Electric",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Đối tác cung cấp công nghệ điện lạnh tiên tiến với hiệu suất cao và thân thiện môi trường."),
+        website: "https://www.mitsubishielectric.com",
+        featured: true,
+        status: "published",
+        order: 3,
+      },
+      {
+        name: "Trane",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Đối tác cung cấp giải pháp điều hòa không khí và làm lạnh hiệu quả cho các công trình quy mô lớn."),
+        website: "https://www.trane.com",
+        featured: true,
+        status: "published",
+        order: 4,
+      },
+      {
+        name: "LG Electronics",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Đối tác chuyên về hệ thống điều hòa không khí thương mại và dân dụng, với nhiều giải pháp tiết kiệm năng lượng."),
+        website: "https://www.lg.com",
+        featured: true,
+        status: "published",
+        order: 5,
+      },
+      {
+        name: "York",
+        type: "partner", // Partner type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Đối tác chuyên cung cấp các hệ thống điều hòa không khí và làm lạnh công nghiệp hiệu suất cao."),
+        website: "https://www.york.com",
+        featured: false,
+        status: "published",
+        order: 6,
+      },
+      // Suppliers
+      {
+        name: "Danfoss",
+        type: "supplier", // Supplier type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Nhà cung cấp thiết bị và giải pháp điều khiển cho ngành công nghiệp điện lạnh và tự động hóa."),
+        website: "https://www.danfoss.com",
+        featured: true,
+        status: "published",
+        order: 1,
+      },
+      {
+        name: "Emerson",
+        type: "supplier", // Supplier type
+        logo: defaultMediaId, // Required field
+        description: createRichText("Nhà cung cấp linh kiện và thiết bị cho hệ thống lạnh thương mại và công nghiệp."),
+        website: "https://www.emerson.com",
+        featured: true,
+        status: "published",
+        order: 2,
       }
     ];
 

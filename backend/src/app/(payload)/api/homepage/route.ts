@@ -87,15 +87,38 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       limit: 4,
       depth: 1,
     });
-    
-    // Fetch technologies/partners
+      // Fetch featured technologies
     const technologies = await payload.find({
       collection: 'technologies' as 'pages',
       where: {
         featured: { equals: true },
         status: { equals: 'published' },
+        type: { equals: 'technology' },
       },
-      limit: 10,
+      limit: 6,
+      depth: 1,
+    });
+      // Fetch featured partners
+    const partners = await payload.find({
+      collection: 'technologies' as 'pages',
+      where: {
+        featured: { equals: true },
+        status: { equals: 'published' },
+        type: { equals: 'partner' },
+      },
+      limit: 6,
+      depth: 1,
+    });
+    
+    // Fetch featured suppliers
+    const suppliers = await payload.find({
+      collection: 'technologies' as 'pages',
+      where: {
+        featured: { equals: true },
+        status: { equals: 'published' },
+        type: { equals: 'supplier' },
+      },
+      limit: 6,
       depth: 1,
     });    // Fetch recent posts/news
     const recentPosts = await payload.find({
@@ -128,11 +151,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           companyInfo,
           header,
           footer,
-          navigation: navigation.docs,
-          featuredProducts: featuredProducts.docs,
-          featuredServices: featuredServices.docs,
-          featuredProjects: featuredProjects.docs,
+          navigation: navigation.docs,          featuredProducts: featuredProducts.docs,
+          featuredServices: featuredServices.docs,          featuredProjects: featuredProjects.docs,
           technologies: technologies.docs,
+          partners: partners.docs,
+          suppliers: suppliers.docs,
           recentPosts: recentPosts.docs,
           upcomingEvents: upcomingEvents.docs,
         },
