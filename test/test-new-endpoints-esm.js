@@ -92,10 +92,12 @@ async function runAllTests() {
     return Array.isArray(data.data) && 'totalDocs' in data;
   });
   technologiesResult ? passed++ : failed++;
-  
-  // Test Homepage API
+    // Test Homepage API
   const homepageResult = await testEndpoint('/homepage', 'Homepage API', (data) => {
-    return data.companyInfo && data.featuredProducts && data.featuredServices;
+    return data.data && 
+           data.data.companyInfo && 
+           Array.isArray(data.data.featuredProducts) && 
+           Array.isArray(data.data.featuredServices);
   });
   homepageResult ? passed++ : failed++;
   

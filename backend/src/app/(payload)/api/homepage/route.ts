@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
+import { NextRequest, NextResponse } from 'next/server';
+import { getPayload } from 'payload';
+import config from '@payload-config';
 
 // Helper function to create CORS headers
 function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*')
-  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
+  const headers = new Headers();
+  headers.append('Access-Control-Allow-Origin', '*');
+  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return headers;
 }
 
 // Pre-flight request handler for CORS
 export async function OPTIONS() {
-  const headers = createCorsHeaders()
+  const headers = createCorsHeaders();
   return new Response(null, { 
     status: 204, 
     headers 
-  })
+  });
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -25,24 +25,26 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     // Initialize Payload
     const payload = await getPayload({
       config,
-    })
+    });
 
     // Fetch company info for header/footer
     const companyInfo = await payload.findGlobal({
       slug: 'company-info',
       depth: 1,
-    })
+    });
 
     // Fetch header/footer globals
     const header = await payload.findGlobal({
       slug: 'header',
       depth: 1,
-    })
+    });
 
     const footer = await payload.findGlobal({
       slug: 'footer',
       depth: 1,
-    })    // Fetch navigation for main menu
+    });
+    
+    // Fetch navigation for main menu
     const navigation = await payload.find({
       collection: 'navigation' as 'pages',
       where: {
@@ -51,7 +53,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       sort: 'order',
       depth: 1,
-    })    // Fetch featured products
+    });
+    
+    // Fetch featured products
     const featuredProducts = await payload.find({
       collection: 'products' as 'pages',
       where: {
@@ -60,7 +64,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       limit: 6,
       depth: 1,
-    })    // Fetch featured services
+    });
+    
+    // Fetch featured services
     const featuredServices = await payload.find({
       collection: 'services' as 'pages',
       where: {
@@ -69,7 +75,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       limit: 6,
       depth: 1,
-    })    // Fetch featured projects
+    });
+    
+    // Fetch featured projects
     const featuredProjects = await payload.find({
       collection: 'projects' as 'pages',
       where: {
@@ -78,7 +86,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       limit: 4,
       depth: 1,
-    })    // Fetch technologies/partners
+    });
+    
+    // Fetch technologies/partners
     const technologies = await payload.find({
       collection: 'technologies' as 'pages',
       where: {
@@ -87,9 +97,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       },
       limit: 10,
       depth: 1,
-    })
-
-    // Fetch recent posts/news
+    });    // Fetch recent posts/news
     const recentPosts = await payload.find({
       collection: 'posts',
       where: {
@@ -98,9 +106,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       sort: '-createdAt',
       limit: 3,
       depth: 1,
-    })
-
-    const headers = createCorsHeaders()
+    });
+    
+    // Fetch upcoming events
+    const upcomingEvents = await payload.find({
+      collection: 'events',
+      where: {
+        publishStatus: { equals: 'published' },
+        status: { equals: 'upcoming' },
+      },
+      sort: 'startDate',
+      limit: 3,
+      depth: 1,
+    });
+    
+    const headers = createCorsHeaders();
     return NextResponse.json(
       {
         success: true,
@@ -114,16 +134,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           featuredProjects: featuredProjects.docs,
           technologies: technologies.docs,
           recentPosts: recentPosts.docs,
+          upcomingEvents: upcomingEvents.docs,
         },
       },
       {
         status: 200,
         headers,
       }
-    )
+    );
   } catch (error) {
-    console.error('Homepage API Error:', error)
-    const headers = createCorsHeaders()
+    console.error('Homepage API Error:', error);
+    const headers = createCorsHeaders();
     return NextResponse.json(
       {
         success: false,
@@ -134,6 +155,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         status: 500,
         headers,
       }
-    )
+    );
   }
 }

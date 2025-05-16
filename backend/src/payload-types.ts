@@ -76,6 +76,8 @@ export interface Config {
     navigation: Navigation;
     products: Product;
     projects: Project;
+    'event-categories': EventCategory;
+    events: Event;
     services: Service;
     technologies: Technology;
     redirects: Redirect;
@@ -98,6 +100,8 @@ export interface Config {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    'event-categories': EventCategoriesSelect<false> | EventCategoriesSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
     technologies: TechnologiesSelect<false> | TechnologiesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -967,6 +971,76 @@ export interface Project {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-categories".
+ */
+export interface EventCategory {
+  id: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+  featured?: boolean | null;
+  /**
+   * Số thấp hơn hiển thị trước
+   */
+  order?: number | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: string;
+  title: string;
+  summary: string;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  featuredImage: string | Media;
+  startDate: string;
+  endDate: string;
+  location: string;
+  organizer: string;
+  /**
+   * Chọn một hoặc nhiều danh mục cho sự kiện
+   */
+  categories: (string | EventCategory)[];
+  /**
+   * Trường này được giữ lại để tương thích với dữ liệu cũ. Vui lòng sử dụng Danh mục sự kiện ở trên.
+   */
+  eventType?: ('exhibition' | 'workshop' | 'training' | 'conference' | 'other') | null;
+  participants?: number | null;
+  tags?:
+    | {
+        tag: string;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'upcoming' | 'ongoing' | 'past';
+  featured?: boolean | null;
+  publishStatus: 'draft' | 'published';
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "services".
  */
 export interface Service {
@@ -1326,6 +1400,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: string | Project;
+      } | null)
+    | ({
+        relationTo: 'event-categories';
+        value: string | EventCategory;
+      } | null)
+    | ({
+        relationTo: 'events';
+        value: string | Event;
       } | null)
     | ({
         relationTo: 'services';
@@ -1829,6 +1911,51 @@ export interface ProjectsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "event-categories_select".
+ */
+export interface EventCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  icon?: T;
+  featured?: T;
+  order?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  title?: T;
+  summary?: T;
+  content?: T;
+  featuredImage?: T;
+  startDate?: T;
+  endDate?: T;
+  location?: T;
+  organizer?: T;
+  categories?: T;
+  eventType?: T;
+  participants?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  status?: T;
+  featured?: T;
+  publishStatus?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }

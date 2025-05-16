@@ -2,18 +2,17 @@
  * Test script for VRC Homepage API endpoint
  */
 
-const fetch = require('node-fetch');
-const chalk = require('chalk');
+import fetch from 'node-fetch';
 
 // API base URL - adjust as needed for your environment
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000/api';
 const ENDPOINT = '/homepage';
 
 // Formatting helpers
-const success = msg => console.log(chalk.green('✓ ') + msg);
-const error = msg => console.log(chalk.red('✗ ') + msg);
-const info = msg => console.log(chalk.blue('ℹ ') + msg);
-const title = msg => console.log(chalk.bold.cyan('\n' + msg + '\n'));
+const success = msg => console.log('\x1b[32m✓\x1b[0m ' + msg);
+const error = msg => console.log('\x1b[31m✗\x1b[0m ' + msg);
+const info = msg => console.log('\x1b[34mℹ\x1b[0m ' + msg);
+const title = msg => console.log('\x1b[36m\x1b[1m\n' + msg + '\n\x1b[0m');
 
 /**
  * Test the homepage API endpoint
@@ -81,8 +80,7 @@ async function testHomepageAPI() {
     }
     
     success(`Homepage API test successful`);
-    
-    title('HOMEPAGE API TEST RESULTS');
+      title('HOMEPAGE API TEST RESULTS');
     success(`All Homepage API tests passed!`);
     return true;
   } catch (err) {
@@ -92,15 +90,13 @@ async function testHomepageAPI() {
 }
 
 // Run the tests if this script is executed directly
-if (require.main === module) {
-  testHomepageAPI()
-    .then(success => {
-      process.exit(success ? 0 : 1);
-    })
-    .catch(err => {
-      console.error(chalk.red('Test execution error:'), err);
-      process.exit(1);
-    });
-}
+testHomepageAPI()
+  .then(success => {
+    process.exit(success ? 0 : 1);
+  })
+  .catch(err => {
+    console.error('\x1b[31mTest execution error:\x1b[0m', err);
+    process.exit(1);
+  });
 
-module.exports = { testHomepageAPI };
+export { testHomepageAPI };

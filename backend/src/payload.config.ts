@@ -6,6 +6,8 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { Categories } from './collections/Categories'
+import { EventCategories } from './collections/EventCategories'
+import { Events } from './collections/Events'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Posts } from './collections/Posts'
@@ -76,9 +78,11 @@ export default buildConfig({  admin: {
     Navigation,
     Products,
     Projects,
+    EventCategories,
+    Events,
     Services,
     Technologies
-  ],  cors: {
+  ],cors: {
     origins: [
       getServerSideURL(),                                    // Backend URL
       process.env.FRONTEND_URL || 'http://localhost:5173',   // Default Frontend Vite URL
