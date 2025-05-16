@@ -20,11 +20,21 @@ This directory contains various test tools and utilities for the VRC project.
   - Verifies the correct company and contact information is returned
   - Tests CORS functionality
 
-- **test-all-endpoints.js**: Comprehensive test script for all API endpoints.
-  - Tests all available API endpoints in a single run
-  - Provides detailed success/failure reporting
-  - Supports testing individual endpoints with command-line options
-  - Example usage: `node test-all-endpoints.js --endpoint=header-info`
+- **test-api-endpoint.js**: Tests the basic API test endpoint.
+  - Verifies the /api/test endpoint is working correctly
+  - Confirms the endpoint returns proper success responses
+
+- **test-all-endpoints.js**: Runs all API endpoint tests.
+  - Executes each individual test file
+  - Provides a comprehensive summary of all tests
+
+## API Endpoints vs Test Files
+
+The VRC project follows these conventions:
+- **Test Files**: Located in this directory (`/test/`), these are scripts that verify functionality
+- **API Endpoints**: Located in `backend/src/app/api/` or `backend/src/app/(payload)/api/`, these are actual server endpoints
+
+Some endpoints, like `/api/test`, are specifically designed to help with testing, but they are actual API endpoints and should remain in the appropriate API directory in the backend source.
 
 ## Utility Scripts
 

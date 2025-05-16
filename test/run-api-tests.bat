@@ -1,5 +1,5 @@
 @echo off
-REM filepath: e:\Download\vrc\test\run-api-tests.bat
+REM Script to run all API tests
 echo VRC API Testing Suite
 echo ==============================================
 echo.

@@ -25,7 +25,8 @@ const endpoints = {
     path: '/api/health',
     methods: ['GET', 'HEAD', 'OPTIONS'],
     description: 'Health check endpoint that provides server status',
-  },  'header-info': {
+  },  
+  'header-info': {
     path: '/api/header-info',
     methods: ['GET', 'OPTIONS'],
     description: 'Provides company information for website header',

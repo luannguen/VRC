@@ -1021,10 +1021,24 @@ async function loadHeaderInfo() {
                     statusEl.textContent = 'Thành công! Đã lấy dữ liệu.';
                     statusEl.className = 'status success';                    // Display logo if available
                     if (data.logo && data.logo.url) {
+                        // Fix the URL construction for the logo
+                        let logoUrl = data.logo.url;
+                        
+                        // If URL doesn't start with http or https, ensure it has the correct domain
+                        if (!logoUrl.startsWith('http')) {
+                            // Remove any leading slash to avoid double slashes
+                            const path = logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl;
+                            
+                            // Use localhost domain when on file protocol, otherwise use current origin
+                            logoUrl = isFileProtocol ? 
+                                'http://localhost:3000' + path : 
+                                window.location.origin + path;
+                        }
+                        
                         logoContainer.innerHTML = `
                             <h3>Logo Công Ty:</h3>
-                            <img src="${data.logo.url}" alt="${data.logo.alt || 'Logo Công Ty'}">
-                            <p>URL Logo: ${data.logo.url}</p>
+                            <img src="${logoUrl}" alt="${data.logo.alt || 'Logo Công Ty'}">
+                            <p>URL Logo: ${logoUrl}</p>
                         `;
                     } else {
                         logoContainer.innerHTML = `
@@ -1189,13 +1203,26 @@ async function loadHeaderInfo() {
                 if (response.ok) {
                     statusEl.textContent = 'Thành công! Đã lấy dữ liệu.';
                     statusEl.className = 'status success';
-                    
-                    // Display logo if available
+                      // Display logo if available
                     if (data.logo && data.logo.url) {
+                        // Fix the URL construction for the logo
+                        let logoUrl = data.logo.url;
+                        
+                        // If URL doesn't start with http or https, ensure it has the correct domain
+                        if (!logoUrl.startsWith('http')) {
+                            // Remove any leading slash to avoid double slashes
+                            const path = logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl;
+                            
+                            // Use localhost domain when on file protocol, otherwise use current origin
+                            logoUrl = isFileProtocol ? 
+                                'http://localhost:3000' + path : 
+                                window.location.origin + path;
+                        }
+                        
                         logoContainer.innerHTML = `
                             <h3>Logo Công Ty:</h3>
-                            <img src="${data.logo.url}" alt="Logo Công Ty">
-                            <p>URL Logo: ${data.logo.url}</p>
+                            <img src="${logoUrl}" alt="${data.logo.alt || 'Logo Công Ty'}">
+                            <p>URL Logo: ${logoUrl}</p>
                         `;
                     } else {
                         logoContainer.innerHTML = `

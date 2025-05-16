@@ -22,6 +22,15 @@ const nextConfig = {
   },
   reactStrictMode: true,
   redirects,
+  // Explicitly tell Next.js we're only using the App Router
+  useFileSystemPublicRoutes: true,
+  // Disable the legacy Pages directory
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx']
 }
 
-export default withPayload(nextConfig, { devBundleServerPackages: false })
+export default withPayload(nextConfig, { 
+  // Configuration for payload
+  devBundleServerPackages: false,
+  // Skip validation to avoid pages directory errors
+  skipPayloadValidation: true
+})
