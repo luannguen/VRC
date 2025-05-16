@@ -19,6 +19,11 @@ Key test files:
 - `test-header-info.js` - Tests header information API
 - `test-api-endpoint.js` - Tests the basic API test endpoint
 - `test-all-endpoints.js` - Master test script for all endpoints
+- `test-navigation.js` - Tests navigation API
+- `test-products.js` - Tests products API
+- `test-homepage.js` - Tests homepage API
+- `test-new-endpoints.js` - Combined test for all new endpoints
+- `run-new-api-tests.bat` - Batch file to run all new API tests
 
 ## API Test Endpoints
 

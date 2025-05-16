@@ -11,11 +11,16 @@ if not exist "%DEST_DIR%" (
 
 REM Copy HTML test file
 copy /Y "%SOURCE_DIR%api-test.html" "%DEST_DIR%\api-test.html"
+copy /Y "%SOURCE_DIR%new-api-test.html" "%DEST_DIR%\new-api-test.html"
 
 REM Copy JavaScript test files
 copy /Y "%SOURCE_DIR%test-health.js" "%DEST_DIR%\test-health.js"
 copy /Y "%SOURCE_DIR%test-header-info.js" "%DEST_DIR%\test-header-info.js"
 copy /Y "%SOURCE_DIR%test-all-endpoints.js" "%DEST_DIR%\test-all-endpoints.js"
+copy /Y "%SOURCE_DIR%test-new-endpoints-esm.js" "%DEST_DIR%\test-new-endpoints-esm.js"
+copy /Y "%SOURCE_DIR%test-navigation.js" "%DEST_DIR%\test-navigation.js"
+copy /Y "%SOURCE_DIR%test-products.js" "%DEST_DIR%\test-products.js"
+copy /Y "%SOURCE_DIR%test-homepage.js" "%DEST_DIR%\test-homepage.js"
 
 if %errorlevel% equ 0 (
     echo.

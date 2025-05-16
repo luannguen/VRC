@@ -1,0 +1,10 @@
+{
+  "name": "vrc-api-tests",
+  "version": "1.0.0",
+  "description": "Test scripts for VRC API",
+  "type": "module",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "node-fetch": "^3.3.2"
+  }
+}
