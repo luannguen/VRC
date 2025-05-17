@@ -202,7 +202,7 @@ export async function uploadFileWithCache(
   // Kiểm tra cache trước
   if (uploadedFileCache[sourceFilePath]) {
     console.log(`Using cached media ID for ${sourceFilePath}: ${uploadedFileCache[sourceFilePath]}`);
-    return uploadedFileCache[sourceFilePath];
+    return uploadedFileCache[sourceFilePath] || null;
   }
   
   // Kiểm tra file tồn tại
