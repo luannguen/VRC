@@ -6,6 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Payload } from 'payload';
 import { PATHS } from './pathConfig';
+// Import image-size một cách chính xác
+import sizeOf from 'image-size';
 
 /**
  * Interface để lưu thông tin hình ảnh
@@ -17,17 +19,31 @@ interface ImageDimensions {
 
 /**
  * Lấy kích thước của hình ảnh
- * Chú ý: Đây chỉ là phiên bản giả lập, trong thực tế bạn cần sử dụng thư viện như sharp hoặc image-size
+ * Sử dụng thư viện image-size để lấy kích thước thật của hình ảnh
  * 
  * @param filePath Đường dẫn đến file hình ảnh
  * @returns Kích thước hình ảnh (width, height) hoặc giá trị mặc định
  */
 export function getImageDimensions(filePath: string): ImageDimensions {
   try {
-    // Trong môi trường thực tế, sử dụng thư viện như sharp hoặc image-size
-    // Ví dụ: const dimensions = require('image-size')(filePath);
+    // Kiểm tra file tồn tại trước khi đọc
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filePath}`);
+    }
     
-    // Đây chỉ là giá trị mặc định, trong thực tế sẽ được thay thế bằng kích thước thật
+    // Sử dụng Buffer để xử lý file và lấy kích thước
+    const fileBuffer = fs.readFileSync(filePath);
+    const dimensions = sizeOf(fileBuffer);
+    
+    // Nếu đọc được kích thước thật
+    if (dimensions && dimensions.width && dimensions.height) {
+      return {
+        width: dimensions.width,
+        height: dimensions.height
+      };
+    }
+    
+    // Fallback nếu không đọc được kích thước
     const fileExt = path.extname(filePath).toLowerCase();
     
     if (fileExt === '.svg') {
@@ -38,8 +54,17 @@ export function getImageDimensions(filePath: string): ImageDimensions {
       return { width: 800, height: 600 }; // Default for other images
     }
   } catch (error) {
-    console.error(`Error getting image dimensions: ${filePath}`, error);
-    return { width: 0, height: 0 };
+    console.error(`Error getting image dimensions for ${filePath}:`, error);
+    
+    // Fallback khi có lỗi
+    const fileExt = path.extname(filePath).toLowerCase();
+    if (fileExt === '.svg') {
+      return { width: 512, height: 512 };
+    } else if (['.jpg', '.jpeg', '.png'].includes(fileExt)) {
+      return { width: 1920, height: 1080 };
+    } else {
+      return { width: 800, height: 600 };
+    }
   }
 }
 

@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\index.ts
 import { Payload } from 'payload';
 import { seedProducts } from './products';
 import { seedServices } from './services';
@@ -10,28 +9,59 @@ import { seedHeaderFooter } from './header-footer';
 import { seedPosts } from './posts';
 import { seedEventCategories } from './event-categories';
 import { seedEvents } from './events';
+import { progressManager } from './utils/progressUtils';
 
 export const seed = async (payload: Payload) => {
   console.log('🌱 Starting seed process...');
   console.log('🖼️ Images will be automatically uploaded from the frontend directory during seeding');
 
-  // Seed data in a specific order - globals first
-  await seedCompanyInfo(payload);
-  await seedHeaderFooter(payload);
-  
-  // Then collections
-  await seedNavigation(payload);
-  await seedProducts(payload);
-  await seedServices(payload);
-  await seedProjects(payload);
-  await seedTechnologies(payload);
-  await seedPosts(payload);
-  // Thêm category trước khi thêm events
-  await seedEventCategories(payload);
-  await seedEvents(payload);
+  // Tổng số collection/global cần seed
+  const totalSeedTasks = 10;
+  progressManager.initProgressBar(totalSeedTasks, 'Seeding application data');
 
-  console.log('🌱 Seed process completed!');
-  console.log('🖼️ All available frontend images have been uploaded to the backend');
+  try {
+    // Seed data in a specific order - globals first
+    await seedCompanyInfo(payload);
+    progressManager.increment();
+    
+    await seedHeaderFooter(payload);
+    progressManager.increment();
+    
+    // Then collections
+    await seedNavigation(payload);
+    progressManager.increment();
+    
+    await seedProducts(payload);
+    progressManager.increment();
+    
+    await seedServices(payload);
+    progressManager.increment();
+    
+    await seedProjects(payload);
+    progressManager.increment();
+    
+    await seedTechnologies(payload);
+    progressManager.increment();
+    
+    await seedPosts(payload);
+    progressManager.increment();
+    
+    // Thêm category trước khi thêm events
+    await seedEventCategories(payload);
+    progressManager.increment();
+    
+    await seedEvents(payload);
+    progressManager.increment();
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
+    
+    console.log('🌱 Seed process completed!');
+    console.log('🖼️ All available frontend images have been uploaded to the backend');
+  } catch (error) {
+    console.error('❌ Error during seed process:', error);
+    progressManager.complete();
+  }
 };
 
 export default seed;

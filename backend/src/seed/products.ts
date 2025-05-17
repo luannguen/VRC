@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\products.ts
 import { Payload } from 'payload';
 
 // Import our improved media management utilities
@@ -9,6 +8,9 @@ import {
 
 // Import RichText utils with advanced formatting
 import { createRichText } from './utils/richTextUtils';
+
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
 
 export const seedProducts = async (payload: Payload) => {
   console.log('📦 Seeding products...');
@@ -24,7 +26,7 @@ export const seedProducts = async (payload: Payload) => {
     if (existingProducts.docs.length > 0) {
       console.log(`Found ${existingProducts.docs.length} existing products, skipping seed.`);
       return;
-    }    // Get or create a default media ID for fallback
+    }// Get or create a default media ID for fallback
     const defaultMediaId = await getOrCreateDefaultMediaId(payload);
     console.log('Default media ID for products fallback:', defaultMediaId);    // Sample products based on the frontend data - with enhanced markdown descriptions
     const products = [
@@ -97,6 +99,9 @@ export const seedProducts = async (payload: Payload) => {
         price: "Liên hệ",
       },
     ];    // Create products
+    // Khởi tạo progress bar cho việc upload hình ảnh sản phẩm
+    progressManager.initProgressBar(products.length, 'Uploading product images');
+    
     for (const product of products) {
       try {
         // Get appropriate image for this product
@@ -117,10 +122,17 @@ export const seedProducts = async (payload: Payload) => {
           data: data as any, // Using type assertion as a temporary solution
         });
         console.log(`Created product: ${createdProduct.name} with media ID: ${data.mainImage}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (error) {
         console.error(`Error creating product ${product.name}:`, error);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded products`);
   } catch (error) {
