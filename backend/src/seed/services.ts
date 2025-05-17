@@ -7,31 +7,8 @@ import {
   getOrCreateDefaultMediaId 
 } from './utils/seedMediaManagement';
 
-// Simplified richText structure
-const createRichText = (text: string) => {
-  return {
-    root: {
-      type: 'root',
-      children: [
-        {
-          type: 'paragraph',
-          version: 1,
-          children: [
-            {
-              type: 'text',
-              text: text,
-              version: 1,
-            },
-          ],
-        },
-      ],
-      direction: null,
-      format: '',
-      indent: 0,
-      version: 1,
-    }
-  };
-};
+// Import RichText utils with advanced formatting
+import { createRichText } from './utils/richTextUtils';
 
 export const seedServices = async (payload: Payload) => {
   console.log('🛠️ Seeding services...');
@@ -49,9 +26,7 @@ export const seedServices = async (payload: Payload) => {
       return;
     }    // Get or create a default media ID for fallback
     const defaultMediaId = await getOrCreateDefaultMediaId(payload);
-    console.log('Default media ID for services fallback:', defaultMediaId);
-
-    // Sample services based on the frontend data
+    console.log('Default media ID for services fallback:', defaultMediaId);    // Sample services based on the frontend data - with rich markdown content
     const services = [
       {
         title: "Dịch vụ bảo trì chuyên nghiệp",
@@ -60,7 +35,22 @@ export const seedServices = async (payload: Payload) => {
         featured: true,
         status: "published",
         featuredImage: defaultMediaId, // Required field
-        content: createRichText("Đội ngũ kỹ thuật hàng đầu, phục vụ 24/7 cho các hệ thống điện lạnh công nghiệp và thương mại."),
+        content: createRichText(`# Dịch vụ bảo trì chuyên nghiệp
+
+## Dịch vụ của chúng tôi bao gồm:
+
+1. Bảo trì định kỳ các hệ thống điều hòa
+2. Kiểm tra và làm sạch thiết bị
+3. Thay thế phụ tùng theo định kỳ
+4. Cập nhật phần mềm điều khiển
+5. Báo cáo tình trạng và đề xuất cải tiến
+
+## Đội ngũ kỹ thuật
+- **Kỹ sư lạnh** với hơn 10 năm kinh nghiệm
+- **Nhân viên kỹ thuật** được đào tạo bài bản
+- **Tư vấn viên** am hiểu sản phẩm và nhu cầu khách hàng
+
+Liên hệ ngay để được tư vấn gói bảo trì phù hợp!`, 'markdown'),
         price: "Theo hợp đồng",
       },
       {
@@ -70,7 +60,24 @@ export const seedServices = async (payload: Payload) => {
         featured: true,
         status: "published",
         featuredImage: defaultMediaId, // Required field
-        content: createRichText("Giải pháp xanh cho tương lai bền vững, giúp doanh nghiệp tiết kiệm chi phí."),
+        content: createRichText(`# Tư vấn giải pháp tiết kiệm năng lượng
+
+## Lợi ích khi sử dụng dịch vụ
+- Giảm chi phí điện năng lên đến 30%
+- Kéo dài tuổi thọ thiết bị
+- Giảm phát thải carbon
+- Cải thiện hình ảnh doanh nghiệp
+
+## Quy trình tư vấn
+1. Đánh giá hiện trạng sử dụng năng lượng
+2. Xác định cơ hội tiết kiệm
+3. Đề xuất giải pháp cụ thể
+4. Phân tích chi phí - lợi ích
+5. Hỗ trợ triển khai
+6. Đánh giá hiệu quả
+
+### Công nghệ xanh
+Chúng tôi áp dụng các **công nghệ tiên tiến** nhằm tối ưu hóa việc sử dụng năng lượng trong mọi công trình.`, 'markdown'),
         price: "Theo dự án",
       },
       {
@@ -80,7 +87,27 @@ export const seedServices = async (payload: Payload) => {
         featured: true,
         status: "published",
         featuredImage: defaultMediaId, // Required field
-        content: createRichText("Khắc phục sự cố nhanh chóng, hỗ trợ 24/7 cho mọi hệ thống điện lạnh."),
+        content: createRichText(`# Dịch vụ sửa chữa khẩn cấp
+
+## Thời gian phản hồi
+- **Trong giờ hành chính:** 30 phút
+- **Ngoài giờ hành chính:** 60 phút
+- **Ngày lễ, Tết:** 90 phút
+
+## Các sự cố chúng tôi xử lý
+- Hệ thống ngừng hoạt động
+- Rò rỉ gas lạnh
+- Tiếng ồn bất thường
+- Nhiệt độ không ổn định
+- Lỗi điện điều khiển
+
+## Cam kết dịch vụ
+1. **Nhanh chóng** - Có mặt sớm nhất có thể
+2. **Chuyên nghiệp** - Kỹ thuật viên được đào tạo bài bản
+3. **Hiệu quả** - Phát hiện và xử lý tận gốc vấn đề
+4. **Minh bạch** - Báo giá trước khi sửa chữa
+
+Hotline hỗ trợ: 1900-xxxx`, 'markdown'),
         price: "Theo giờ",
       },
     ];    // Create services

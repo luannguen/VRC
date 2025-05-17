@@ -7,32 +7,8 @@ import {
   getOrCreateDefaultMediaId 
 } from './utils/seedMediaManagement';
 
-// Simplified richText structure - this is a basic structure
-// In a real implementation, you would use a proper markdown to richText converter
-const createRichText = (text: string) => {
-  return {
-    root: {
-      type: 'root',
-      children: [
-        {
-          type: 'paragraph',
-          version: 1,
-          children: [
-            {
-              type: 'text',
-              text: text,
-              version: 1,
-            },
-          ],
-        },
-      ],
-      direction: null,
-      format: '',
-      indent: 0,
-      version: 1,
-    }
-  };
-};
+// Import RichText utils with advanced formatting
+import { createRichText } from './utils/richTextUtils';
 
 export const seedProducts = async (payload: Payload) => {
   console.log('📦 Seeding products...');
@@ -50,14 +26,23 @@ export const seedProducts = async (payload: Payload) => {
       return;
     }    // Get or create a default media ID for fallback
     const defaultMediaId = await getOrCreateDefaultMediaId(payload);
-    console.log('Default media ID for products fallback:', defaultMediaId);
-
-    // Sample products based on the frontend data
+    console.log('Default media ID for products fallback:', defaultMediaId);    // Sample products based on the frontend data - with enhanced markdown descriptions
     const products = [
       {
         name: "Điều hòa công nghiệp VRC-5000",
         excerpt: "Hệ thống điều hòa công nghiệp công suất lớn, phù hợp cho nhà xưởng, nhà máy sản xuất",
-        description: createRichText("Hệ thống điều hòa công nghiệp công suất lớn, phù hợp cho nhà xưởng, nhà máy sản xuất."),
+        description: createRichText(`# Điều hòa công nghiệp VRC-5000
+
+## Tính năng nổi bật
+- Công suất lớn, phù hợp không gian rộng
+- Tiết kiệm điện với công nghệ Inverter
+- Hoạt động êm ái, bền bỉ
+- Bảo hành 5 năm
+
+## Thông số kỹ thuật
+1. Công suất: 50.000 BTU
+2. Điện áp: 380V
+3. Khả năng làm mát: 150m²`, 'markdown'),
         category: "industrial",
         featured: true,
         status: "published",
@@ -67,7 +52,19 @@ export const seedProducts = async (payload: Payload) => {
       {
         name: "Kho lạnh bảo quản VRC-KL500",
         excerpt: "Kho lạnh công nghiệp lắp đặt nhanh chóng, bảo quản thực phẩm, dược phẩm với nhiệt độ ổn định",
-        description: createRichText("Kho lạnh công nghiệp lắp đặt nhanh chóng, bảo quản thực phẩm, dược phẩm với nhiệt độ ổn định."),
+        description: createRichText(`# Kho lạnh bảo quản VRC-KL500
+
+## Đặc điểm sản phẩm
+- Dung tích lớn, phù hợp cho nhà máy, cơ sở sản xuất
+- Nhiệt độ ổn định từ -20°C đến +10°C
+- Cấu trúc panel cách nhiệt hiệu quả
+- Hệ thống kiểm soát độ ẩm thông minh
+
+## Ứng dụng
+- Bảo quản thực phẩm
+- Bảo quản dược phẩm
+- Bảo quản mẫu sinh học
+- Lưu trữ vật liệu đặc biệt`, 'markdown'),
         category: "cold-storage",
         featured: true,
         status: "published",
@@ -77,7 +74,22 @@ export const seedProducts = async (payload: Payload) => {
       {
         name: "Hệ thống lạnh thương mại VRC-CS200",
         excerpt: "Thiết bị làm lạnh cho siêu thị, nhà hàng và cửa hàng bán lẻ",
-        description: createRichText("Thiết bị làm lạnh cho siêu thị, nhà hàng và cửa hàng bán lẻ"),
+        description: createRichText(`# Hệ thống lạnh thương mại VRC-CS200
+
+## Ưu điểm sản phẩm
+- Thiết kế hiện đại, phù hợp không gian thương mại
+- Điều chỉnh nhiệt độ linh hoạt
+- Tiết kiệm điện năng
+- Bảo hành dài hạn
+
+## Phù hợp với
+1. Siêu thị mini
+2. Nhà hàng
+3. Cửa hàng tiện lợi
+4. Quầy bar
+
+## Công nghệ
+**Công nghệ Inverter** giúp tiết kiệm điện năng hiệu quả.`, 'markdown'),
         category: "commercial",
         featured: true,
         status: "published",

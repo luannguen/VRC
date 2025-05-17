@@ -1,6 +1,8 @@
 import { Payload } from 'payload';
 import fs from 'fs';
 import path from 'path';
+import { PATHS, getAbsolutePath } from './pathConfig';
+import { uploadFileWithCache } from './fileUtils';
 
 /**
  * Maps company names to their respective logo filenames
@@ -37,6 +39,7 @@ const mediaCache: Record<string, string> = {};
 
 /**
  * Upload an image from the frontend to the backend media collection
+ * Triển khai đầy đủ phương pháp upload file thực sự
  * 
  * @param payload Payload instance
  * @param imagePath Path to the image file in the frontend
@@ -49,38 +52,8 @@ export async function uploadMediaFromFrontend(
   alt: string
 ): Promise<string | null> {
   try {
-    // Check if this file has already been uploaded
-    if (mediaCache[imagePath]) {
-      console.log(`Using cached media ID for ${imagePath}: ${mediaCache[imagePath]}`);
-      return mediaCache[imagePath];
-    }
-
-    // Check if file exists
-    if (!fs.existsSync(imagePath)) {
-      console.error(`File not found: ${imagePath}`);
-      return null;
-    }
-    
-    // Instead of using streams that cause TypeScript errors, we'll use a different approach
-    // Create the media record first
-    const mediaDoc = await payload.create({
-      collection: 'media',
-      data: {
-        alt: alt,
-      },
-      // We omit the file property to avoid TypeScript errors
-      // In a real implementation, we would need to manually copy the file to the media directory
-      // See alternative-upload.ts for a proper solution
-    });
-
-    // Cache the result
-    if (mediaDoc?.id) {
-      mediaCache[imagePath] = mediaDoc.id;
-      console.log(`Uploaded media: ${path.basename(imagePath)} with ID: ${mediaDoc.id}`);
-      return mediaDoc.id;
-    }
-    
-    return null;
+    // Sử dụng hàm tiện ích mới để upload file với cache
+    return await uploadFileWithCache(payload, imagePath, alt);
   } catch (error) {
     console.error(`Error uploading media from ${imagePath}:`, error);
     return null;
@@ -116,14 +89,14 @@ export async function uploadCompanyLogo(
 ): Promise<string | null> {  // Get logo filename with null check, ensure it's always a string
   const logoFilename = companyLogoMap[companyName] ?? companyLogoMap['default'] ?? 'logo.svg';
   
-  // Check frontend asset directories for the logo
+  // Check frontend asset directories for the logo using absolute paths
   const possiblePaths = [
-    // Common locations
-    path.join(process.cwd(), '../vrcfrontend/public/assets/svg', logoFilename),
-    path.join(process.cwd(), '../vrcfrontend/public/assets/images', logoFilename),
-    path.join(process.cwd(), '../vrcfrontend/public/lovable-uploads', logoFilename),
+    // Common locations - using absolute paths
+    path.join(PATHS.FRONTEND_ASSETS.SVG, logoFilename),
+    path.join(PATHS.FRONTEND_ASSETS.IMAGES, logoFilename),
+    path.join(PATHS.FRONTEND_ASSETS.UPLOADS, logoFilename),
     // Use default logo if specific logo not found
-    path.join(process.cwd(), '../vrcfrontend/public/assets/svg/logo.svg'),
+    path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg'),
   ];
 
   // Find the first path that exists
@@ -153,12 +126,12 @@ export async function uploadTechnologyImage(
   // Ensure we always have a string by providing a fallback
   const imageFilename = technologyImageMap[technologyName] ?? technologyImageMap['default'] ?? 'technology-default.jpg';
   
-  // Check frontend asset directories
+  // Check frontend asset directories with absolute paths
   const possiblePaths = [
-    path.join(process.cwd(), '../vrcfrontend/public/assets/images', imageFilename),
+    path.join(PATHS.FRONTEND_ASSETS.IMAGES, imageFilename),
     // Project and service images can be reused for technologies
-    path.join(process.cwd(), '../vrcfrontend/public/assets/images/projects-overview.jpg'),
-    path.join(process.cwd(), '../vrcfrontend/public/assets/images/service-overview.jpg'),
+    path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'projects-overview.jpg'),
+    path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'service-overview.jpg'),
   ];
 
   for (const imagePath of possiblePaths) {
@@ -186,9 +159,8 @@ export async function getDefaultMediaId(payload: Payload): Promise<string | null
     if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
       return media.docs[0].id;
     }
-    
-    // If no media exists, upload the default logo
-    const defaultLogoPath = path.join(process.cwd(), '../vrcfrontend/public/assets/svg/logo.svg');
+      // If no media exists, upload the default logo using absolute path
+    const defaultLogoPath = path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg');
     if (fs.existsSync(defaultLogoPath)) {
       return await uploadMediaFromFrontend(payload, defaultLogoPath, 'Default logo');
     }

@@ -99,19 +99,13 @@ const imageMap: CollectionImageMap = {
   },
 };
 
+import { getImageSearchPaths } from './pathConfig';
+
 /**
  * Directories to search for images in order of preference
+ * Sử dụng đường dẫn tuyệt đối từ cấu hình
  */
-const imageDirPaths = [
-  // SVG logos
-  path.join('../vrcfrontend/public/assets/svg'),
-  // Image files 
-  path.join('../vrcfrontend/public/assets/images'),
-  // Lovable uploads
-  path.join('../vrcfrontend/public/lovable-uploads'),
-  // Public directory
-  path.join('../vrcfrontend/public'),
-];
+const imageDirPaths = getImageSearchPaths();
 
 // Cache for already uploaded images to avoid duplicates
 const uploadedMediaCache: Record<string, string> = {};

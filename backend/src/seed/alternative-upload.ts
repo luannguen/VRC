@@ -30,23 +30,82 @@ export async function uploadMediaItemProperly(
   altText: string
 ): Promise<string | null> {
   try {
-    // Step 1: Create media record in Payload CMS
-    // This should be done with a helper function from seedMediaManagement.ts
-    const mediaId = await createMediaRecord(payload, path.basename(sourceImagePath), altText);
-    
-    if (!mediaId) {
-      console.error("Failed to create media record");
+    // Đảm bảo file tồn tại
+    if (!fs.existsSync(sourceImagePath)) {
+      console.error(`File not found: ${sourceImagePath}`);
       return null;
     }
     
-    // Step 2: Copy file to media directory
-    // This would be implemented in the seedMediaManagement.ts file
+    const fileName = path.basename(sourceImagePath);
+    const fileExt = path.extname(fileName).toLowerCase();
     
-    return mediaId;
+    // Tạo tên file duy nhất bằng cách thêm timestamp
+    const uniqueFileName = `${path.basename(fileName, fileExt)}-${Date.now()}${fileExt}`;
+    
+    // Step 1: Tạo bản ghi media trong Payload CMS
+    const mediaDoc = await payload.create({
+      collection: 'media',
+      data: {
+        alt: altText,
+        filename: uniqueFileName
+      },
+    });
+    
+    if (!mediaDoc?.id) {
+      console.error(`Failed to create media record for ${fileName}`);
+      return null;
+    }
+    
+    // Step 2: Xác định đường dẫn đến thư mục media của Payload CMS
+    const payloadMediaDir = path.resolve(process.cwd(), 'media');
+    
+    // Tạo thư mục nếu không tồn tại
+    if (!fs.existsSync(payloadMediaDir)) {
+      fs.mkdirSync(payloadMediaDir, { recursive: true });
+    }
+    
+    const destPath = path.join(payloadMediaDir, uniqueFileName);
+    
+    // Step 3: Sao chép file vào thư mục media
+    fs.copyFileSync(sourceImagePath, destPath);
+    console.log(`Copied ${sourceImagePath} to ${destPath}`);
+    
+    // Step 4: Cập nhật bản ghi media với thông tin file
+    await payload.update({
+      collection: 'media',
+      id: mediaDoc.id,
+      data: {
+        url: `/media/${uniqueFileName}`,
+        filename: uniqueFileName,
+        mimeType: getMimeType(fileExt.slice(1)), // Loại bỏ dấu . từ fileExt
+        filesize: fs.statSync(sourceImagePath).size,
+        width: 0, // Lý tưởng thì lấy kích thước thực từ file hình ảnh
+        height: 0 // Lý tưởng thì lấy kích thước thực từ file hình ảnh
+      }
+    });
+    
+    console.log(`Updated media record for ${uniqueFileName} with ID: ${mediaDoc.id}`);
+    return mediaDoc.id;
   } catch (error) {
     console.error(`Error uploading media:`, error);
     return null;
   }
+}
+
+/**
+ * Lấy MIME type từ phần mở rộng file
+ */
+function getMimeType(extension: string): string {
+  const types: Record<string, string> = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'svg': 'image/svg+xml',
+    'webp': 'image/webp',
+  };
+  
+  return types[extension.toLowerCase()] || 'application/octet-stream';
 }
 
 /**
