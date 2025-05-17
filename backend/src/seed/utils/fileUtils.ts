@@ -98,6 +98,20 @@ export function getMimeType(extension: string): string {
 }
 
 /**
+ * Đường dẫn đến các file fallback mặc định
+ */
+const DEFAULT_FILES = {
+  IMAGE: path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'projects-overview.jpg'),
+  LOGO: path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg'),
+  DOCUMENT: path.join(PATHS.FRONTEND_PUBLIC, 'placeholder.svg'),
+};
+
+/**
+ * Cache đã upload để tránh upload trùng lặp
+ */
+const uploadedFileCache: Record<string, string> = {};
+
+/**
  * Tải file lên thư mục media của Payload CMS với thông tin đầy đủ
  * 
  * @param payload Payload instance
@@ -114,6 +128,12 @@ export async function uploadFileToPayloadMedia(
     // Kiểm tra file tồn tại
     if (!fs.existsSync(sourceFilePath)) {
       console.error(`File not found: ${sourceFilePath}`);
+      return null;
+    }
+    
+    // Kiểm tra payload đã khởi tạo
+    if (!payload) {
+      console.error('Payload instance is not initialized');
       return null;
     }
     
@@ -134,56 +154,44 @@ export async function uploadFileToPayloadMedia(
     const dimensions = getImageDimensions(sourceFilePath);
     
     // Sao chép file
-    fs.copyFileSync(sourceFilePath, destinationPath);
-    console.log(`Copied file from ${sourceFilePath} to ${destinationPath}`);
-    
-    // Tạo bản ghi media
-    const mediaDoc = await payload.create({
-      collection: 'media',
-      data: {
-        alt: altText,
-        filename: uniqueFileName,
-        url: `/media/${uniqueFileName}`,
-        mimeType: getMimeType(fileExt.slice(1)),
-        filesize: fileSizeBytes,
-        width: dimensions.width,
-        height: dimensions.height,
-      }
-    });
-    
-    if (mediaDoc?.id) {
-      console.log(`Created media record for ${uniqueFileName} with ID: ${mediaDoc.id}`);
-      return mediaDoc.id;
+    try {
+      fs.copyFileSync(sourceFilePath, destinationPath);
+      console.log(`Copied file from ${sourceFilePath} to ${destinationPath}`);
+    } catch (copyError) {
+      console.error(`Error copying file from ${sourceFilePath} to ${destinationPath}:`, copyError);
+      return null;
     }
     
-    return null;
+    // Tạo bản ghi media
+    try {
+      const mediaDoc = await payload.create({
+        collection: 'media',
+        data: {
+          alt: altText || 'Image upload from seed',
+          filename: uniqueFileName,
+          url: `/media/${uniqueFileName}`,
+          mimeType: getMimeType(fileExt.slice(1)),
+          filesize: fileSizeBytes,
+          width: dimensions.width,
+          height: dimensions.height,
+        }
+      });
+      
+      if (mediaDoc?.id) {
+        console.log(`Created media record for ${uniqueFileName} with ID: ${mediaDoc.id}`);
+        return mediaDoc.id;
+      }
+    } catch (createError) {
+      console.error(`Error creating media record for ${uniqueFileName}:`, createError);
+      return null;
+    }
+    
+    return null; // Đảm bảo luôn có giá trị trả về
   } catch (error) {
     console.error(`Error uploading file: ${sourceFilePath}`, error);
     return null;
   }
 }
-
-/**
- * Cache đã upload để tránh upload trùng lặp
- */
-const uploadedFileCache: Record<string, string> = {};
-
-/**
- * Upload file với cache để tránh upload trùng lặp
- * 
- * @param payload Payload instance
- * @param sourceFilePath Đường dẫn file nguồn
- * @param altText Alt text cho media
- * @returns ID của media đã tải lên
- */
-/**
- * Đường dẫn đến các file fallback mặc định
- */
-const DEFAULT_FILES = {
-  IMAGE: path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'projects-overview.jpg'),
-  LOGO: path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg'),
-  DOCUMENT: path.join(PATHS.FRONTEND_PUBLIC, 'placeholder.svg'),
-};
 
 /**
  * Upload file với cache để tránh upload trùng lặp
@@ -199,41 +207,48 @@ export async function uploadFileWithCache(
   sourceFilePath: string,
   altText: string
 ): Promise<string | null> {
-  // Kiểm tra cache trước
-  if (uploadedFileCache[sourceFilePath]) {
-    console.log(`Using cached media ID for ${sourceFilePath}: ${uploadedFileCache[sourceFilePath]}`);
-    return uploadedFileCache[sourceFilePath] || null;
-  }
-  
-  // Kiểm tra file tồn tại
-  if (!fs.existsSync(sourceFilePath)) {
-    console.warn(`File not found: ${sourceFilePath}, using fallback file`);
-    
-    // Sử dụng file fallback dựa vào loại file
-    let fallbackFile = DEFAULT_FILES.IMAGE;
-    
-    // Xác định loại file dựa vào phần mở rộng
-    const fileExt = path.extname(sourceFilePath).toLowerCase();
-    if (fileExt === '.svg') {
-      fallbackFile = DEFAULT_FILES.LOGO;
+  try {
+    // Kiểm tra cache trước
+    if (uploadedFileCache[sourceFilePath]) {
+      console.log(`Using cached media ID for ${sourceFilePath}: ${uploadedFileCache[sourceFilePath]}`);
+      return uploadedFileCache[sourceFilePath] || null;
     }
     
-    // Nếu file fallback tồn tại, sử dụng nó thay thế
-    if (fs.existsSync(fallbackFile)) {
-      console.log(`Using fallback file: ${fallbackFile}`);
-      sourceFilePath = fallbackFile;
-    } else {
-      console.error(`Fallback file not found: ${fallbackFile}`);
-      return null;
+    // Kiểm tra file tồn tại
+    if (!fs.existsSync(sourceFilePath)) {
+      console.warn(`File not found: ${sourceFilePath}, using fallback file`);
+      
+      // Sử dụng file fallback dựa vào loại file
+      let fallbackFile = DEFAULT_FILES.IMAGE;
+      
+      // Xác định loại file dựa vào phần mở rộng
+      const fileExt = path.extname(sourceFilePath).toLowerCase();
+      if (fileExt === '.svg') {
+        fallbackFile = DEFAULT_FILES.LOGO;
+      } else if (['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'].includes(fileExt)) {
+        fallbackFile = DEFAULT_FILES.DOCUMENT;
+      }
+      
+      // Nếu file fallback tồn tại, sử dụng nó thay thế
+      if (fs.existsSync(fallbackFile)) {
+        console.log(`Using fallback file: ${fallbackFile}`);
+        sourceFilePath = fallbackFile;
+      } else {
+        console.error(`Fallback file not found: ${fallbackFile}`);
+        return null;
+      }
     }
+    
+    // Upload file và lưu vào cache
+    const mediaId = await uploadFileToPayloadMedia(payload, sourceFilePath, altText);
+    
+    if (mediaId) {
+      uploadedFileCache[sourceFilePath] = mediaId;
+    }
+    
+    return mediaId;
+  } catch (error) {
+    console.error(`Error in uploadFileWithCache for ${sourceFilePath}:`, error);
+    return null;
   }
-  
-  // Upload file và lưu vào cache
-  const mediaId = await uploadFileToPayloadMedia(payload, sourceFilePath, altText);
-  
-  if (mediaId) {
-    uploadedFileCache[sourceFilePath] = mediaId;
-  }
-  
-  return mediaId;
 }
