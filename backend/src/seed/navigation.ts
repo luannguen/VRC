@@ -1,5 +1,6 @@
 // filepath: e:\Download\vrc\backend\src\seed\navigation.ts
 import { Payload } from 'payload';
+import { progressManager } from './utils/progressUtils';
 
 export const seedNavigation = async (payload: Payload) => {
   console.log('🧭 Seeding navigation...');
@@ -15,9 +16,10 @@ export const seedNavigation = async (payload: Payload) => {
     if (existingNav.docs.length > 0) {
       console.log(`Found ${existingNav.docs.length} existing navigation items, skipping seed.`);
       return;
-    }
-
-    // Create the navigation items with proper structure
+    }    // Create the navigation items with proper structure
+    // Khởi tạo progress bar cho việc tạo menu
+    progressManager.initProgressBar(2, 'Creating navigation menus');
+    
     // Main menu navigation
     await payload.create({
       collection: 'navigation',
@@ -148,10 +150,15 @@ export const seedNavigation = async (payload: Payload) => {
           }
         ]
       }
-    });
-
+    });    // Cập nhật tiến trình sau khi tạo menu footer
+    progressManager.increment();
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
+    
     console.log('✅ Successfully seeded navigation');
   } catch (error) {
     console.error('Error seeding navigation:', error);
+    progressManager.complete();
   }
 };

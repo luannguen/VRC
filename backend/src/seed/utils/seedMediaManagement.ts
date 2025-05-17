@@ -2,6 +2,7 @@ import { Payload } from 'payload';
 import * as fs from 'fs';
 import * as path from 'path';
 import { uploadMediaFromFrontend } from './uploadMedia';
+import { progressManager } from './progressUtils';
 
 /**
  * Creates a media record without directly uploading a file
@@ -13,6 +14,8 @@ export async function createMediaRecord(
   alt: string
 ): Promise<string | null> {
   try {
+    // Initialize progress bar for creating media record
+    progressManager.initProgressBar(1, `Creating media record for ${filename}`);
     const mediaDoc = await payload.create({
       collection: 'media',
       data: {
@@ -20,14 +23,17 @@ export async function createMediaRecord(
         // In production, we would include more fields as needed
       },
     });
-    
-    if (mediaDoc?.id) {
+      if (mediaDoc?.id) {
       console.log(`Created media record for ${filename} with ID: ${mediaDoc.id}`);
+      progressManager.increment();
+      progressManager.complete();
       return mediaDoc.id;
     }
+    progressManager.complete(); // Complete progress bar even if failed
     return null;
   } catch (error) {
     console.error(`Error creating media record for ${filename}:`, error);
+    progressManager.complete(); // Complete progress bar on error
     return null;
   }
 }

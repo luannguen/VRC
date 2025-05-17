@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { PATHS, getAbsolutePath } from './pathConfig';
 import { uploadFileWithCache } from './fileUtils';
+import { progressManager } from './progressUtils';
 
 /**
  * Maps company names to their respective logo filenames
@@ -87,7 +88,11 @@ function getMimeType(extension: string): string {
 export async function uploadCompanyLogo(
   payload: Payload,
   companyName: string
-): Promise<string | null> {  // Get logo filename with null check, ensure it's always a string
+): Promise<string | null> {  
+  // Initialize progress bar for logo upload
+  progressManager.initProgressBar(1, `Uploading logo for ${companyName}`);
+  
+  // Get logo filename with null check, ensure it's always a string
   const logoFilename = companyLogoMap[companyName] ?? companyLogoMap['default'] ?? 'logo.svg';
   
   // Check frontend asset directories for the logo using absolute paths
@@ -99,21 +104,27 @@ export async function uploadCompanyLogo(
     // Use default logo if specific logo not found
     path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg'),
   ];
-
   // Find the first path that exists
   for (const imagePath of possiblePaths) {
     if (fs.existsSync(imagePath)) {
-      return await uploadMediaFromFrontend(payload, imagePath, `Logo of ${companyName}`);
+      const mediaId = await uploadMediaFromFrontend(payload, imagePath, `Logo of ${companyName}`);
+      progressManager.increment();
+      progressManager.complete();
+      return mediaId;
     }
   }
 
   // If no logo is found, use any available image
   const fallbackImage = path.join(process.cwd(), '../vrcfrontend/public/assets/svg/logo.svg');
   if (fs.existsSync(fallbackImage)) {
-    return await uploadMediaFromFrontend(payload, fallbackImage, `Generic logo for ${companyName}`);
+    const mediaId = await uploadMediaFromFrontend(payload, fallbackImage, `Generic logo for ${companyName}`);
+    progressManager.increment();
+    progressManager.complete();
+    return mediaId;
   }
   
   console.error(`Could not find any suitable logo for ${companyName}`);
+  progressManager.complete(); // Complete progress bar even if failed
   return null;
 }
 
@@ -124,6 +135,9 @@ export async function uploadTechnologyImage(
   payload: Payload,
   technologyName: string
 ): Promise<string | null> {
+  // Initialize progress bar for technology image upload
+  progressManager.initProgressBar(1, `Uploading image for technology: ${technologyName}`);
+  
   // Ensure we always have a string by providing a fallback
   const imageFilename = technologyImageMap[technologyName] ?? technologyImageMap['default'] ?? 'technology-default.jpg';
   
@@ -134,14 +148,17 @@ export async function uploadTechnologyImage(
     path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'projects-overview.jpg'),
     path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'service-overview.jpg'),
   ];
-
   for (const imagePath of possiblePaths) {
     if (fs.existsSync(imagePath)) {
-      return await uploadMediaFromFrontend(payload, imagePath, `Image for ${technologyName}`);
+      const mediaId = await uploadMediaFromFrontend(payload, imagePath, `Image for ${technologyName}`);
+      progressManager.increment();
+      progressManager.complete();
+      return mediaId;
     }
   }
 
   console.error(`Could not find any suitable image for technology: ${technologyName}`);
+  progressManager.complete(); // Complete progress bar even if failed
   return null;
 }
 
@@ -151,24 +168,33 @@ export async function uploadTechnologyImage(
  */
 export async function getDefaultMediaId(payload: Payload): Promise<string | null> {
   try {
+    // Initialize progress bar for getting default media
+    progressManager.initProgressBar(1, 'Getting default media');
+    
     // Try to use an existing media item first
     const media = await payload.find({
       collection: 'media',
       limit: 1,
     });
-    
-    if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
+      if (media?.docs && media.docs.length > 0 && media.docs[0]?.id) {
+      progressManager.increment();
+      progressManager.complete();
       return media.docs[0].id;
     }
       // If no media exists, upload the default logo using absolute path
     const defaultLogoPath = path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg');
     if (fs.existsSync(defaultLogoPath)) {
-      return await uploadMediaFromFrontend(payload, defaultLogoPath, 'Default logo');
+      const mediaId = await uploadMediaFromFrontend(payload, defaultLogoPath, 'Default logo');
+      progressManager.increment();
+      progressManager.complete();
+      return mediaId;
     }
     
+    progressManager.complete(); // Complete progress bar even if failed
     return null;
   } catch (error) {
     console.error('Error fetching default media:', error);
+    progressManager.complete(); // Complete progress bar on error
     return null;
   }
 }

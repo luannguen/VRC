@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\posts.ts
 import { Payload } from 'payload';
 
 // Import our improved media management utilities
@@ -6,6 +5,9 @@ import {
   getImageForCollectionItem,
   getOrCreateDefaultMediaId 
 } from './utils/seedMediaManagement';
+
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -93,6 +95,9 @@ export const seedPosts = async (payload: Payload) => {
         }
       }
     ];    // Create posts
+    // Khởi tạo progress bar cho việc tạo bài viết
+    progressManager.initProgressBar(posts.length, 'Uploading post images');
+    
     for (const post of posts) {
       try {
         // Get appropriate image for this post
@@ -117,10 +122,17 @@ export const seedPosts = async (payload: Payload) => {
           data: data as any, // Using type assertion as a temporary solution
         });
         console.log(`Created post: ${createdPost.title} with media ID: ${data.heroImage}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (error) {
         console.error(`Error creating post ${post.title}:`, error);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded posts`);
   } catch (error) {

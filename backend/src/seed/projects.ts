@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\projects.ts
 import { Payload } from 'payload';
 
 // Import our improved media management utilities
@@ -6,6 +5,9 @@ import {
   getImageForCollectionItem,
   getOrCreateDefaultMediaId 
 } from './utils/seedMediaManagement';
+
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -99,6 +101,9 @@ export const seedProjects = async (payload: Payload) => {
         content: createRichText("Thiết kế và lắp đặt hệ thống kho lạnh công nghiệp quy mô lớn cho nhà máy chế biến thủy sản xuất khẩu tại Cà Mau."),
       },
     ];    // Create projects
+    // Khởi tạo progress bar cho việc tạo dự án
+    progressManager.initProgressBar(projects.length, 'Uploading project images');
+    
     for (const project of projects) {
       try {
         // Get appropriate image for this project
@@ -119,10 +124,17 @@ export const seedProjects = async (payload: Payload) => {
           data: data as any, // Using type assertion as a temporary solution
         });
         console.log(`Created project: ${createdProject.title} with media ID: ${data.featuredImage}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (error) {
         console.error(`Error creating project ${project.title}:`, error);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded projects`);
   } catch (error) {

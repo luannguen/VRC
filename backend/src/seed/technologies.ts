@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\technologies.ts
 import { Payload } from 'payload';
 
 // Import our improved media management utilities
@@ -6,6 +5,9 @@ import {
   getImageForCollectionItem,
   getOrCreateDefaultMediaId 
 } from './utils/seedMediaManagement';
+
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
 
 // Simplified richText structure
 const createRichText = (text: string) => {
@@ -162,6 +164,9 @@ export const seedTechnologies = async (payload: Payload) => {
         order: 2,
       }
     ];    // Create technologies
+    // Khởi tạo progress bar cho việc tạo công nghệ
+    progressManager.initProgressBar(technologies.length, 'Uploading technology images');
+    
     for (const tech of technologies) {
       try {
         // Get appropriate image for this technology/partner/supplier
@@ -182,10 +187,17 @@ export const seedTechnologies = async (payload: Payload) => {
           data: data as any, // Using type assertion as a temporary solution
         });
         console.log(`Created ${tech.type} ${createdTech.name} with media ID: ${data.logo}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (error) {
         console.error(`Error creating technology ${tech.name}:`, error);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded technologies`);
   } catch (error) {

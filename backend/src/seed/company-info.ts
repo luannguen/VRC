@@ -1,10 +1,13 @@
 // filepath: e:\Download\vrc\backend\src\seed\company-info.ts
 import { Payload } from 'payload';
+import { progressManager } from './utils/progressUtils';
 
 export const seedCompanyInfo = async (payload: Payload) => {
   console.log('🏢 Seeding company info...');
-
   try {
+    // Initialize progress bar
+    progressManager.initProgressBar(1, 'Creating company info');
+    
     // Check if company info already exists
     const existingGlobal = await payload.findGlobal({
       slug: 'company-info',
@@ -13,6 +16,7 @@ export const seedCompanyInfo = async (payload: Payload) => {
     // If already exists, skip
     if (existingGlobal) {
       console.log('Company info already exists, skipping seed.');
+      progressManager.complete();
       return;
     }
 
@@ -82,13 +86,17 @@ export const seedCompanyInfo = async (payload: Payload) => {
             indent: 0,
             version: 1,
           }
-        },
-        logo: defaultMediaId
+        },        logo: defaultMediaId
       },
     });
-
+    
+    // Increment progress bar
+    progressManager.increment();
+    progressManager.complete();
+    
     console.log('✅ Successfully seeded company info');
   } catch (error) {
     console.error('Error seeding company info:', error);
+    if (progressManager) progressManager.complete();
   }
 };

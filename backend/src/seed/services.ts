@@ -1,4 +1,3 @@
-// filepath: e:\Download\vrc\backend\src\seed\services.ts
 import { Payload } from 'payload';
 
 // Import our improved media management utilities
@@ -9,6 +8,9 @@ import {
 
 // Import RichText utils with advanced formatting
 import { createRichText } from './utils/richTextUtils';
+
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
 
 export const seedServices = async (payload: Payload) => {
   console.log('🛠️ Seeding services...');
@@ -111,6 +113,9 @@ Hotline hỗ trợ: 1900-xxxx`, 'markdown'),
         price: "Theo giờ",
       },
     ];    // Create services
+    // Khởi tạo progress bar cho việc tạo dịch vụ
+    progressManager.initProgressBar(services.length, 'Uploading service images');
+    
     for (const service of services) {
       try {
         // Get appropriate image for this service
@@ -131,10 +136,17 @@ Hotline hỗ trợ: 1900-xxxx`, 'markdown'),
           data: data as any, // Using type assertion as a temporary solution
         });
         console.log(`Created service: ${createdService.title} with media ID: ${data.featuredImage}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (error) {
         console.error(`Error creating service ${service.title}:`, error);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded services`);
   } catch (error) {

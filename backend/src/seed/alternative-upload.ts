@@ -10,6 +10,8 @@ import fs from 'fs';
 import path from 'path';
 import { Payload } from 'payload';
 import { createMediaRecord } from './utils/seedMediaManagement';
+import sizeOf from 'image-size';
+import { progressManager } from './utils/progressUtils';
 
 /**
  * How to properly upload media files via the seed process.
@@ -30,9 +32,13 @@ export async function uploadMediaItemProperly(
   altText: string
 ): Promise<string | null> {
   try {
+    // Initialize progress bar (for one file upload)
+    progressManager.initProgressBar(1, `Uploading media: ${path.basename(sourceImagePath)}`);
+    
     // Đảm bảo file tồn tại
     if (!fs.existsSync(sourceImagePath)) {
       console.error(`File not found: ${sourceImagePath}`);
+      progressManager.complete();
       return null;
     }
     
@@ -69,8 +75,26 @@ export async function uploadMediaItemProperly(
     // Step 3: Sao chép file vào thư mục media
     fs.copyFileSync(sourceImagePath, destPath);
     console.log(`Copied ${sourceImagePath} to ${destPath}`);
+      // Step 4: Cập nhật bản ghi media với thông tin file
     
-    // Step 4: Cập nhật bản ghi media với thông tin file
+    // Lấy kích thước thực tế của hình ảnh
+    let width = 0;
+    let height = 0;
+    
+    // Chỉ đọc kích thước cho các file hình ảnh
+    if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(fileExt.toLowerCase())) {
+      try {
+        const fileBuffer = fs.readFileSync(sourceImagePath);
+        const dimensions = sizeOf(fileBuffer);
+        if (dimensions && dimensions.width && dimensions.height) {
+          width = dimensions.width;
+          height = dimensions.height;
+        }
+      } catch (sizeError) {
+        console.error(`Error getting image dimensions for ${uniqueFileName}:`, sizeError);
+      }
+    }
+    
     await payload.update({
       collection: 'media',
       id: mediaDoc.id,
@@ -79,15 +103,20 @@ export async function uploadMediaItemProperly(
         filename: uniqueFileName,
         mimeType: getMimeType(fileExt.slice(1)), // Loại bỏ dấu . từ fileExt
         filesize: fs.statSync(sourceImagePath).size,
-        width: 0, // Lý tưởng thì lấy kích thước thực từ file hình ảnh
-        height: 0 // Lý tưởng thì lấy kích thước thực từ file hình ảnh
+        width: width,
+        height: height
       }
     });
+      console.log(`Updated media record for ${uniqueFileName} with ID: ${mediaDoc.id}`);
     
-    console.log(`Updated media record for ${uniqueFileName} with ID: ${mediaDoc.id}`);
+    // Complete progress bar
+    progressManager.increment();
+    progressManager.complete();
+    
     return mediaDoc.id;
   } catch (error) {
     console.error(`Error uploading media:`, error);
+    if (progressManager) progressManager.complete();
     return null;
   }
 }

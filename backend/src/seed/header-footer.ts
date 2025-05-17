@@ -1,8 +1,12 @@
 // filepath: e:\Download\vrc\backend\src\seed\header-footer.ts
 import { Payload } from 'payload';
+import { progressManager } from './utils/progressUtils';
 
 export const seedHeaderFooter = async (payload: Payload) => {
   console.log('🔖 Seeding header and footer...');
+  
+  // Initialize progress bar for header and footer (2 items)
+  progressManager.initProgressBar(2, 'Creating header and footer');
 
   try {
     // Check if header already exists
@@ -58,11 +62,13 @@ export const seedHeaderFooter = async (payload: Payload) => {
             }
           ]
         },
-      });
-      console.log('✅ Successfully seeded header');
+      });      console.log('✅ Successfully seeded header');
     } else {
       console.log('Header already exists, skipping seed.');
     }
+    
+    // Increment progress bar for header
+    progressManager.increment();
 
     // Check if footer already exists
     const existingFooter = await payload.findGlobal({
@@ -101,12 +107,16 @@ export const seedHeaderFooter = async (payload: Payload) => {
             }
           ]
         },
-      });
-      console.log('✅ Successfully seeded footer');
+      });      console.log('✅ Successfully seeded footer');
     } else {
       console.log('Footer already exists, skipping seed.');
     }
+    
+    // Increment progress bar for footer and complete
+    progressManager.increment();
+    progressManager.complete();
   } catch (error) {
     console.error('Error seeding header/footer:', error);
+    if (progressManager) progressManager.complete();
   }
 };

@@ -1,6 +1,9 @@
 // filepath: src/seed/events.ts
 import { Payload } from 'payload';
 
+// Import progress bar manager
+import { progressManager } from './utils/progressUtils';
+
 export const seedEvents = async (payload: Payload): Promise<void> => {
   console.log('🗓️ Seeding events...');
 
@@ -269,9 +272,10 @@ Khóa đào tạo chuyên sâu dành cho kỹ thuật viên về quy trình bả
         featured: false,
         publishStatus: "published",
       }
-    ];
-
-    // Create events
+    ];    // Create events
+    // Khởi tạo progress bar cho việc tạo sự kiện
+    progressManager.initProgressBar(events.length, 'Creating events');
+    
     for (const event of events) {
       try {
         // Convert the string content to richText format
@@ -290,10 +294,17 @@ Khóa đào tạo chuyên sâu dành cho kỹ thuật viên về quy trình bả
           data: eventData,
         });
         console.log(`✅ Created event: ${event.title}`);
+        
+        // Cập nhật tiến trình
+        progressManager.increment();
       } catch (eventError) {
         console.error(`❌ Error creating event "${event.title}":`, eventError);
+        progressManager.increment(); // Vẫn cập nhật nếu có lỗi
       }
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log(`✅ Successfully seeded ${events.length} events`);
   } catch (error) {

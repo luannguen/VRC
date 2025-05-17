@@ -1,4 +1,5 @@
 import { Payload } from 'payload';
+import { progressManager } from './utils/progressUtils';
 
 export const seedEventCategories = async (payload: Payload): Promise<void> => {
   try {
@@ -46,9 +47,10 @@ export const seedEventCategories = async (payload: Payload): Promise<void> => {
         featured: false,
         order: 6,
       },
-    ];
+    ];    console.log('Đang thêm dữ liệu mẫu cho danh mục sự kiện...');
 
-    console.log('Đang thêm dữ liệu mẫu cho danh mục sự kiện...');
+    // Khởi tạo progress bar cho việc tạo danh mục sự kiện
+    progressManager.initProgressBar(categories.length, 'Creating event categories');
 
     // Thêm từng danh mục
     for (const category of categories) {
@@ -79,7 +81,13 @@ export const seedEventCategories = async (payload: Payload): Promise<void> => {
       } else {
         console.log(`⏩ Danh mục sự kiện ${category.name} đã tồn tại, bỏ qua`);
       }
+      
+      // Cập nhật tiến trình
+      progressManager.increment();
     }
+    
+    // Hoàn thành progress bar
+    progressManager.complete();
 
     console.log('✅ Hoàn thành thêm dữ liệu mẫu cho danh mục sự kiện!');
   } catch (error) {
