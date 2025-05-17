@@ -118,13 +118,16 @@ const uploadedMediaCache: Record<string, string> = {};
  */
 function findImageInFrontend(fileName: string): string | null {
   for (const dirPath of imageDirPaths) {
-    const absoluteDirPath = path.resolve(process.cwd(), dirPath);
-    const filePath = path.join(absoluteDirPath, fileName);
+    // Đường dẫn đã là tuyệt đối từ pathConfig.ts
+    const filePath = path.join(dirPath, fileName);
     
     if (fs.existsSync(filePath)) {
+      console.log(`Found image: ${filePath}`);
       return filePath;
     }
   }
+  
+  console.log(`Could not find image: ${fileName}`);
   return null;
 }
 

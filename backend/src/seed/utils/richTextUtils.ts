@@ -2,7 +2,6 @@
  * Utilities for handling richText content in Payload CMS
  * Cung cấp chức năng định dạng RichText nâng cao với hỗ trợ Markdown
  */
-import { RichTextCustomElement } from 'payload/types';
 
 /**
  * Interface cho RichText structure

@@ -5,7 +5,9 @@
 import path from 'path';
 
 // Xác định đường dẫn gốc của dự án
-const PROJECT_ROOT = path.resolve(process.cwd(), '../..');
+// Sử dụng __dirname thay vì process.cwd() để đảm bảo đường dẫn luôn đúng
+// __dirname là thư mục chứa file hiện tại (backend/src/seed/utils)
+const PROJECT_ROOT = path.resolve(__dirname, '../../../..');
 
 // Cấu hình các đường dẫn tuyệt đối
 export const PATHS = {

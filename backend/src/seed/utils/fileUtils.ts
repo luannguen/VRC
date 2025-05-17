@@ -176,6 +176,24 @@ const uploadedFileCache: Record<string, string> = {};
  * @param altText Alt text cho media
  * @returns ID của media đã tải lên
  */
+/**
+ * Đường dẫn đến các file fallback mặc định
+ */
+const DEFAULT_FILES = {
+  IMAGE: path.join(PATHS.FRONTEND_ASSETS.IMAGES, 'projects-overview.jpg'),
+  LOGO: path.join(PATHS.FRONTEND_ASSETS.SVG, 'logo.svg'),
+  DOCUMENT: path.join(PATHS.FRONTEND_PUBLIC, 'placeholder.svg'),
+};
+
+/**
+ * Upload file với cache để tránh upload trùng lặp
+ * Bao gồm xử lý fallback cho các file không tồn tại
+ * 
+ * @param payload Payload instance
+ * @param sourceFilePath Đường dẫn file nguồn
+ * @param altText Alt text cho media
+ * @returns ID của media đã tải lên
+ */
 export async function uploadFileWithCache(
   payload: Payload,
   sourceFilePath: string,
@@ -185,6 +203,29 @@ export async function uploadFileWithCache(
   if (uploadedFileCache[sourceFilePath]) {
     console.log(`Using cached media ID for ${sourceFilePath}: ${uploadedFileCache[sourceFilePath]}`);
     return uploadedFileCache[sourceFilePath];
+  }
+  
+  // Kiểm tra file tồn tại
+  if (!fs.existsSync(sourceFilePath)) {
+    console.warn(`File not found: ${sourceFilePath}, using fallback file`);
+    
+    // Sử dụng file fallback dựa vào loại file
+    let fallbackFile = DEFAULT_FILES.IMAGE;
+    
+    // Xác định loại file dựa vào phần mở rộng
+    const fileExt = path.extname(sourceFilePath).toLowerCase();
+    if (fileExt === '.svg') {
+      fallbackFile = DEFAULT_FILES.LOGO;
+    }
+    
+    // Nếu file fallback tồn tại, sử dụng nó thay thế
+    if (fs.existsSync(fallbackFile)) {
+      console.log(`Using fallback file: ${fallbackFile}`);
+      sourceFilePath = fallbackFile;
+    } else {
+      console.error(`Fallback file not found: ${fallbackFile}`);
+      return null;
+    }
   }
   
   // Upload file và lưu vào cache

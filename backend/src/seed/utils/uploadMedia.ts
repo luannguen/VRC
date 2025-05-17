@@ -6,30 +6,31 @@ import { uploadFileWithCache } from './fileUtils';
 
 /**
  * Maps company names to their respective logo filenames
- * Add more mappings as needed
+ * Sử dụng logo mặc định vì các logo riêng không có sẵn
  */
 export const companyLogoMap: Record<string, string> = {
-  'Daikin': 'daikin-logo.svg',
-  'Carrier': 'carrier-logo.svg',
-  'Mitsubishi Electric': 'mitsubishi-logo.svg',
-  'Trane': 'trane-logo.svg',
-  'LG Electronics': 'lg-logo.svg',
-  'York': 'york-logo.svg',
-  'Danfoss': 'danfoss-logo.svg',
-  'Emerson': 'emerson-logo.svg',
+  'Daikin': 'logo.svg',
+  'Carrier': 'logo.svg',
+  'Mitsubishi Electric': 'logo.svg',
+  'Trane': 'logo.svg',
+  'LG Electronics': 'logo.svg',
+  'York': 'logo.svg',
+  'Danfoss': 'logo.svg',
+  'Emerson': 'logo.svg',
   // Default logo for any missing mappings
   'default': 'logo.svg',
 };
 
 /**
  * Maps technology names to their respective image filenames
+ * Sử dụng hình ảnh có sẵn thay vì các hình ảnh riêng
  */
 export const technologyImageMap: Record<string, string> = {
-  'Inverter DC': 'inverter-dc.jpg',
-  'Smart Control System': 'smart-control.jpg',
-  'Green Refrigerant': 'green-refrigerant.jpg',
+  'Inverter DC': 'service-overview.jpg',
+  'Smart Control System': 'projects-overview.jpg',
+  'Green Refrigerant': 'service-overview.jpg',
   // Default technology image
-  'default': 'technology-default.jpg',
+  'default': 'service-overview.jpg',
 };
 
 /**
