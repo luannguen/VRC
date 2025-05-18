@@ -14,6 +14,9 @@ import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Navigation } from './collections/Navigation'
+import { ProductCategories } from './collections/ProductCategories'
+import { NewsCategories } from './collections/NewsCategories'
+import { ServiceCategories } from './collections/ServiceCategories'
 import { Products } from './collections/Products'
 import { Projects } from './collections/Projects'
 import { Services } from './collections/Services'
@@ -36,8 +39,9 @@ export default buildConfig({  admin: {
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
       beforeDashboard: ['@/components/BeforeDashboard'],
       // Add logout button to the bottom of the left menu
-      afterNavLinks: ['@/components/Logout'],
+      afterNavLinks: ['@/components/DynamicLogout', '@/components/DynamicAdminStyleCustomization', '@/components/DynamicSidebarCustomization'],
     },
+    css: path.resolve(dirname, 'styles/admin-group-icons.scss'),
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -73,6 +77,9 @@ export default buildConfig({  admin: {
     Posts, 
     Media, 
     Categories, 
+    ProductCategories,
+    NewsCategories,
+    ServiceCategories,
     Users, 
     ContactSubmissions,
     Navigation,

@@ -8,11 +8,11 @@ export const Products: CollectionConfig = {
   labels: {
     singular: 'Sản phẩm',
     plural: 'Sản phẩm',
-  },
-  admin: {
+  },  admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'category', 'featured', 'status', 'updatedAt'],
-    group: 'Sản phẩm & Dịch vụ',
+    group: 'Sản phẩm',
+    description: 'Quản lý sản phẩm và thông tin liên quan',
   },
   access: {
     create: authenticated,
@@ -66,21 +66,25 @@ export const Products: CollectionConfig = {
           label: 'Chú thích',
         },
       ],
-    },
-    {
+    },    {
       name: 'category',
       type: 'relationship',
-      label: 'Danh mục',
+      label: 'Danh mục sản phẩm',
       relationTo: 'categories',
       hasMany: false,
+      filterOptions: ({ relationTo }) => {
+        return {
+          type: { equals: 'category' },
+        };
+      },
       admin: {
         position: 'sidebar',
+        description: 'Chọn danh mục chính cho sản phẩm này',
       },
-    },
-    {
+    },{
       name: 'tags',
       type: 'relationship',
-      label: 'Thẻ',
+      label: 'Thẻ/Tags',
       relationTo: 'categories',
       hasMany: true,
       filterOptions: ({ relationTo }) => {
@@ -90,6 +94,7 @@ export const Products: CollectionConfig = {
       },
       admin: {
         position: 'sidebar',
+        description: 'Chọn các thẻ (tags) để phân loại bổ sung cho sản phẩm',
       },
     },
     {

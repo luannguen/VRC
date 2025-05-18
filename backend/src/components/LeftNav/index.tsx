@@ -2,6 +2,7 @@
 
 import React from 'react'
 import LogoutButton from '../Logout'
+import HydrationSafeWrapper from '../HydrationSafeWrapper'
 
 const LeftNav: React.FC<{
   children?: React.ReactNode
@@ -9,7 +10,9 @@ const LeftNav: React.FC<{
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ flex: 1 }}>{children}</div>
-      <LogoutButton />
+      <HydrationSafeWrapper>
+        <LogoutButton />
+      </HydrationSafeWrapper>
     </div>
   )
 }

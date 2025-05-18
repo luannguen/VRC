@@ -8,11 +8,11 @@ export const Services: CollectionConfig = {
   labels: {
     singular: 'Dịch vụ',
     plural: 'Dịch vụ',
-  },
-  admin: {
+  },  admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'type', 'status', 'order'],
-    group: 'Sản phẩm & Dịch vụ',
+    group: 'Dịch vụ',
+    description: 'Quản lý dịch vụ và thông tin liên quan',
   },
   access: {
     create: authenticated,

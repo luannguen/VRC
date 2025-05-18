@@ -8,11 +8,11 @@ export const Projects: CollectionConfig = {
   labels: {
     singular: 'Dự án',
     plural: 'Dự án',
-  },
-  admin: {
+  },  admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'client', 'status', 'updatedAt'],
-    group: 'Dự án & Đối tác',
+    group: 'Dự án',
+    description: 'Quản lý dự án và thông tin liên quan',
   },
   access: {
     create: authenticated,

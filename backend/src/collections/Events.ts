@@ -11,7 +11,8 @@ export const Events: CollectionConfig = {
   },  admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'categories', 'startDate', 'location', 'status'],
-    group: 'Nội dung',
+    group: 'Sự kiện',
+    description: 'Quản lý sự kiện và thông tin liên quan',
   },
   access: {
     create: authenticated,

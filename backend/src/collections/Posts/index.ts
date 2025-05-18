@@ -36,8 +36,6 @@ export const Posts: CollectionConfig<'posts'> = {
     update: authenticated,
   },
   // This config controls what's populated by default when a post is referenced
-  // https://payloadcms.com/docs/queries/select#defaultpopulate-collection-config-property
-  // Type safe if the collection slug generic is passed to `CollectionConfig` - `CollectionConfig<'posts'>
   defaultPopulate: {
     title: true,
     slug: true,
@@ -48,7 +46,10 @@ export const Posts: CollectionConfig<'posts'> = {
     },
   },
   admin: {
-    defaultColumns: ['title', 'slug', 'updatedAt'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'categories', 'status', 'updatedAt'],
+    group: 'Tin tức & Bài viết', 
+    description: 'Quản lý tin tức, bài viết và nội dung liên quan',
     livePreview: {
       url: ({ data, req }) => {
         const path = generatePreviewPath({
@@ -66,7 +67,6 @@ export const Posts: CollectionConfig<'posts'> = {
         collection: 'posts',
         req,
       }),
-    useAsTitle: 'title',
   },
   fields: [
     {
@@ -131,6 +131,11 @@ export const Posts: CollectionConfig<'posts'> = {
               },
               hasMany: true,
               relationTo: 'categories',
+              filterOptions: ({ relationTo }) => {
+                return {
+                  type: { equals: 'news_category' },
+                };
+              },
             },
           ],
           label: 'Meta',

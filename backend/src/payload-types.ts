@@ -71,6 +71,9 @@ export interface Config {
     posts: Post;
     media: Media;
     categories: Category;
+    'product-categories': ProductCategory;
+    'news-categories': NewsCategory;
+    'service-categories': ServiceCategory;
     users: User;
     'contact-submissions': ContactSubmission;
     navigation: Navigation;
@@ -95,6 +98,9 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    'product-categories': ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    'news-categories': NewsCategoriesSelect<false> | NewsCategoriesSelect<true>;
+    'service-categories': ServiceCategoriesSelect<false> | ServiceCategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'contact-submissions': ContactSubmissionsSelect<false> | ContactSubmissionsSelect<true>;
     navigation: NavigationSelect<false> | NavigationSelect<true>;
@@ -160,6 +166,8 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Quản lý các trang tĩnh của website
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -226,6 +234,8 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Quản lý tin tức, bài viết và nội dung liên quan
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts".
  */
@@ -365,12 +375,21 @@ export interface Media {
   };
 }
 /**
+ * Quản lý tất cả các danh mục và thẻ trong hệ thống.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
 export interface Category {
   id: string;
+  /**
+   * Nhập tên của danh mục hoặc thẻ
+   */
   title: string;
+  /**
+   * Chọn loại danh mục hoặc thẻ phù hợp với mục đích sử dụng.
+   */
+  type: 'category' | 'tag' | 'news_category' | 'service_category' | 'event_category' | 'project_category';
   slug?: string | null;
   slugLock?: boolean | null;
   parent?: (string | null) | Category;
@@ -746,6 +765,51 @@ export interface Form {
   createdAt: string;
 }
 /**
+ * Quản lý danh mục phân loại sản phẩm.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories".
+ */
+export interface ProductCategory {
+  id: string;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Quản lý danh mục phân loại tin tức và bài viết.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news-categories".
+ */
+export interface NewsCategory {
+  id: string;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Quản lý danh mục phân loại dịch vụ.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-categories".
+ */
+export interface ServiceCategory {
+  id: string;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Các yêu cầu liên hệ từ khách hàng
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -815,6 +879,8 @@ export interface Navigation {
   createdAt: string;
 }
 /**
+ * Quản lý sản phẩm và thông tin liên quan
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
@@ -850,7 +916,13 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Chọn danh mục chính cho sản phẩm này
+   */
   category?: (string | null) | Category;
+  /**
+   * Chọn các thẻ (tags) để phân loại bổ sung cho sản phẩm
+   */
   tags?: (string | Category)[] | null;
   /**
    * Đánh dấu là sản phẩm nổi bật để hiện trên trang chủ
@@ -889,6 +961,8 @@ export interface Product {
   createdAt: string;
 }
 /**
+ * Quản lý dự án và thông tin liên quan
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
  */
@@ -989,6 +1063,8 @@ export interface EventCategory {
   createdAt: string;
 }
 /**
+ * Quản lý sự kiện và thông tin liên quan
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
@@ -1040,6 +1116,8 @@ export interface Event {
   createdAt: string;
 }
 /**
+ * Quản lý dịch vụ và thông tin liên quan
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "services".
  */
@@ -1380,6 +1458,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'product-categories';
+        value: string | ProductCategory;
+      } | null)
+    | ({
+        relationTo: 'news-categories';
+        value: string | NewsCategory;
+      } | null)
+    | ({
+        relationTo: 'service-categories';
+        value: string | ServiceCategory;
       } | null)
     | ({
         relationTo: 'users';
@@ -1744,6 +1834,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  type?: T;
   slug?: T;
   slugLock?: T;
   parent?: T;
@@ -1755,6 +1846,42 @@ export interface CategoriesSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-categories_select".
+ */
+export interface ProductCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "news-categories_select".
+ */
+export interface NewsCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-categories_select".
+ */
+export interface ServiceCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  slug?: T;
+  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }
