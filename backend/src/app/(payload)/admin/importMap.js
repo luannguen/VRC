@@ -21,9 +21,9 @@ import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloa
 import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { RowLabel as RowLabel_ec255a65fa6fa8d1faeb09cf35284224 } from '@/Header/RowLabel'
 import { RowLabel as RowLabel_1f6ff6ff633e3695d348f4f3c58f1466 } from '@/Footer/RowLabel'
-import { default as default_478e6777546559130171e8babb8f23f9 } from '@/components/DynamicLogout'
-import { default as default_6beaaf5bc100f9733458916ef1c539fd } from '@/components/DynamicAdminStyleCustomization'
-import { default as default_173ba693ae1e04aac484bd2e45ce8da8 } from '@/components/DynamicSidebarCustomization'
+import { default as default_995ae309552ba6ebe44285e5d50b88ff } from '@/components/AdminUI/DynamicLogout'
+import { default as default_61152d73de94f5b8b341645df2eda68e } from '@/components/AdminUI/DynamicSidebar'
+import { default as default_1e4ee4bd99b98fd4103db779e449be3c } from '@/components/AdminUI/DynamicAdminStyles'
 import { default as default_1a7510af427896d367a49dbf838d2de6 } from '@/components/BeforeDashboard'
 import { default as default_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
 
@@ -51,9 +51,9 @@ export const importMap = {
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@/Header/RowLabel#RowLabel": RowLabel_ec255a65fa6fa8d1faeb09cf35284224,
   "@/Footer/RowLabel#RowLabel": RowLabel_1f6ff6ff633e3695d348f4f3c58f1466,
-  "@/components/DynamicLogout#default": default_478e6777546559130171e8babb8f23f9,
-  "@/components/DynamicAdminStyleCustomization#default": default_6beaaf5bc100f9733458916ef1c539fd,
-  "@/components/DynamicSidebarCustomization#default": default_173ba693ae1e04aac484bd2e45ce8da8,
+  "@/components/AdminUI/DynamicLogout#default": default_995ae309552ba6ebe44285e5d50b88ff,
+  "@/components/AdminUI/DynamicSidebar#default": default_61152d73de94f5b8b341645df2eda68e,
+  "@/components/AdminUI/DynamicAdminStyles#default": default_1e4ee4bd99b98fd4103db779e449be3c,
   "@/components/BeforeDashboard#default": default_1a7510af427896d367a49dbf838d2de6,
   "@/components/BeforeLogin#default": default_8a7ab0eb7ab5c511aba12e68480bfe5e
 }

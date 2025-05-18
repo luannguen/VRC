@@ -773,7 +773,26 @@ export interface Form {
 export interface ProductCategory {
   id: string;
   title: string;
+  /**
+   * Mô tả ngắn gọn về danh mục này
+   */
   description?: string | null;
+  /**
+   * Chọn danh mục cha (nếu có) để tạo cấu trúc phân cấp
+   */
+  parent?: (string | null) | ProductCategory;
+  /**
+   * Hình ảnh hiển thị cho danh mục này
+   */
+  featuredImage?: (string | null) | Media;
+  /**
+   * Hiển thị danh mục này trong menu chính
+   */
+  showInMenu?: boolean | null;
+  /**
+   * Số thấp hơn sẽ hiển thị trước
+   */
+  orderNumber?: number | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;
@@ -919,7 +938,7 @@ export interface Product {
   /**
    * Chọn danh mục chính cho sản phẩm này
    */
-  category?: (string | null) | Category;
+  category?: (string | null) | ProductCategory;
   /**
    * Chọn các thẻ (tags) để phân loại bổ sung cho sản phẩm
    */
@@ -951,7 +970,15 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'new' | 'special' | 'discontinued';
+  /**
+   * Mã nội bộ hoặc mã SKU của sản phẩm
+   */
+  productCode?: string | null;
+  /**
+   * Số thấp hơn sẽ hiển thị trước
+   */
+  sortOrder?: number | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -1856,6 +1883,10 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductCategoriesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  parent?: T;
+  featuredImage?: T;
+  showInMenu?: T;
+  orderNumber?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;
@@ -1982,6 +2013,8 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   status?: T;
+  productCode?: T;
+  sortOrder?: T;
   meta?:
     | T
     | {

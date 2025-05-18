@@ -31,17 +31,14 @@ import { getServerSideURL } from './utilities/getURL'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildConfig({  admin: {
-    components: {
+export default buildConfig({  admin: {    components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
       beforeLogin: ['@/components/BeforeLogin'],      // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: ['@/components/BeforeDashboard'],
-      // Add logout button to the bottom of the left menu
-      afterNavLinks: ['@/components/DynamicLogout', '@/components/DynamicAdminStyleCustomization', '@/components/DynamicSidebarCustomization'],
+      beforeDashboard: ['@/components/BeforeDashboard'],      // Add logout button to the bottom of the left menu
+      afterNavLinks: ['@/components/AdminUI/DynamicLogout', '@/components/AdminUI/DynamicSidebar', '@/components/AdminUI/DynamicAdminStyles'],
     },
-    css: path.resolve(dirname, 'styles/admin-group-icons.scss'),
     importMap: {
       baseDir: path.resolve(dirname),
     },

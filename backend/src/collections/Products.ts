@@ -13,6 +13,11 @@ export const Products: CollectionConfig = {
     defaultColumns: ['name', 'category', 'featured', 'status', 'updatedAt'],
     group: 'Sản phẩm',
     description: 'Quản lý sản phẩm và thông tin liên quan',
+    listSearchableFields: ['name', 'description', 'excerpt', 'slug'],
+    pagination: {
+      defaultLimit: 20, 
+      limits: [10, 20, 50, 100],
+    },
   },
   access: {
     create: authenticated,
@@ -70,13 +75,8 @@ export const Products: CollectionConfig = {
       name: 'category',
       type: 'relationship',
       label: 'Danh mục sản phẩm',
-      relationTo: 'categories',
+      relationTo: 'product-categories',
       hasMany: false,
-      filterOptions: ({ relationTo }) => {
-        return {
-          type: { equals: 'category' },
-        };
-      },
       admin: {
         position: 'sidebar',
         description: 'Chọn danh mục chính cho sản phẩm này',
@@ -155,8 +155,7 @@ export const Products: CollectionConfig = {
           required: true,
         },
       ],
-    },
-    {
+    },    {
       name: 'status',
       type: 'select',
       label: 'Trạng thái',
@@ -170,10 +169,41 @@ export const Products: CollectionConfig = {
           label: 'Đã xuất bản',
           value: 'published',
         },
+        {
+          label: 'Sản phẩm mới',
+          value: 'new',
+        },
+        {
+          label: 'Sản phẩm đặc biệt',
+          value: 'special',
+        },
+        {
+          label: 'Ngừng kinh doanh',
+          value: 'discontinued',
+        }
       ],
       defaultValue: 'draft',
       admin: {
         position: 'sidebar',
+      },
+    },
+    {
+      name: 'productCode',
+      type: 'text',
+      label: 'Mã sản phẩm',
+      admin: {
+        position: 'sidebar',
+        description: 'Mã nội bộ hoặc mã SKU của sản phẩm',
+      },
+    },
+    {
+      name: 'sortOrder',
+      type: 'number',
+      label: 'Thứ tự hiển thị',
+      defaultValue: 999,
+      admin: {
+        position: 'sidebar',
+        description: 'Số thấp hơn sẽ hiển thị trước',
       },
     },
     {
