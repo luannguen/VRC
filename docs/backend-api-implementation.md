@@ -1,5 +1,9 @@
 # Backend API Implementation Summary
 
+## API Structure Evolution
+
+The project has been migrated from Payload CMS Express-based endpoints to Next.js App Router API routes. All active API endpoints now follow the Next.js App Router structure in `/src/app/(payload)/api/` or `/src/app/api/`.
+
 ## Backend API Routes Implemented
 
 1. **Company Info API** (`/api/company-info`)
@@ -14,8 +18,9 @@
 
 3. **Health API** (`/api/health`)
    - System status and health check endpoint
-   - Supports both GET and HEAD requests for different monitoring needs
+   - Supports both GET, HEAD, and OPTIONS requests
    - Provides version, timestamp, and environment information
+   - The most current implementation is in `/src/app/api/health/route.ts`
 
 4. **Contact API** (`/api/contact`)
    - Handles contact form submissions from website users

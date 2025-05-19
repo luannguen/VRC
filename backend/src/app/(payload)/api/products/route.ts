@@ -445,6 +445,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const isPayloadAdmin = req.headers.get('referer')?.includes('/admin') || false;
       console.log('POST /api/products: Is Payload Admin request:', isPayloadAdmin);
       
+      // First check: If this is coming from the admin panel but doesn't contain name in the body,
+      // it might be the initial request checking for permissions/fields rather than the actual data submission
+      const url = new URL(req.url);
+      if (isPayloadAdmin && url.searchParams.has('depth')) {
+        // This appears to be a query from the admin panel, not an actual product creation
+        // Forward to the built-in Payload API
+        console.log('POST /api/products: Detected admin panel query request, forwarding to Payload API');
+        
+        // Use Payload's built-in methods instead of custom logic for this case
+        const payloadResponse = await payload.find({
+          collection: 'products',
+          depth: Number(url.searchParams.get('depth') || 0),
+          page: Number(url.searchParams.get('page') || 1),
+          limit: Number(url.searchParams.get('limit') || 10),
+          sort: url.searchParams.get('sort') || 'id',
+          where: {}
+        });
+        
+        return NextResponse.json(payloadResponse, {
+          status: 200,
+          headers: createCORSHeaders(),
+        });
+      }
+      
       if (contentType.includes('application/json')) {
         // JSON content type
         try {
@@ -460,9 +484,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           const formData = await req.formData();
           console.log('POST /api/products: Form data keys:', [...formData.keys()]);
           
+          // Handle proper Payload admin submissions - they might include a "_payload" field with JSON data
+          const payloadField = formData.get('_payload');
+          if (payloadField && typeof payloadField === 'string') {
+            try {
+              body._payload = JSON.parse(payloadField);
+              console.log('POST /api/products: Parsed _payload field:', JSON.stringify(body._payload));
+            } catch (parseError) {
+              console.error('POST /api/products: Error parsing _payload field:', parseError);
+            }
+          }
+          
           // Convert FormData to object while handling special cases
-          body = {};
           for (const [key, value] of formData.entries()) {
+            // Skip _payload as we've already handled it
+            if (key === '_payload') continue;
+            
             console.log(`POST /api/products: Form field ${key}:`, value);
             
             // Check if the field might be a nested object or array (serialized)
@@ -500,7 +537,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
       }
       
-      console.log('POST /api/products: Final parsed body:', JSON.stringify(body));} catch (error) {
+      console.log('POST /api/products: Final parsed body:', JSON.stringify(body));}catch (error) {
       const parseError = error as Error;
       console.error('POST /api/products: Error parsing request body:', parseError)
       return NextResponse.json(
@@ -533,6 +570,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     
     // Determine the actual data to use (Payload admin may send data in a nested property)
     const productData = body.data || body._payload || body;
+    
+    // Handle related products field - ensure it's properly formatted
+    if (productData.relatedProducts !== undefined) {
+      if (productData.relatedProducts === null || productData.relatedProducts === 0 || productData.relatedProducts === '0') {
+        // If relatedProducts is null, 0 or '0', set it to an empty array
+        productData.relatedProducts = [];
+        console.log('POST /api/products: relatedProducts was null/0, setting to empty array');
+      } else if (!Array.isArray(productData.relatedProducts)) {
+        // If it's not an array (but not null/undefined), try to format it properly
+        try {
+          if (typeof productData.relatedProducts === 'string') {
+            // Try to parse JSON if it's a string
+            if (productData.relatedProducts.trim() === '') {
+              productData.relatedProducts = [];
+            } else if (productData.relatedProducts.startsWith('[')) {
+              productData.relatedProducts = JSON.parse(productData.relatedProducts);
+            } else {
+              // Single ID as string
+              productData.relatedProducts = [productData.relatedProducts];
+            }
+          } else if (typeof productData.relatedProducts === 'object') {
+            // Handle single object case
+            productData.relatedProducts = [productData.relatedProducts];
+          } else {
+            // Any other case, set to empty
+            productData.relatedProducts = [];
+          }
+          console.log('POST /api/products: Formatted relatedProducts:', JSON.stringify(productData.relatedProducts));
+        } catch (error) {
+          console.error('POST /api/products: Error formatting relatedProducts, setting to empty array:', error);
+          productData.relatedProducts = [];
+        }
+      }
+    }
     
     // Log actual data being used for creation
     console.log('POST /api/products: Final data for creation:', JSON.stringify(productData));
@@ -663,6 +734,40 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     try {
       // Determine the actual data to use (handle both direct data and nested structure)
       const productData = body.data || body;
+      
+      // Handle related products field - ensure it's properly formatted
+      if (productData.relatedProducts !== undefined) {
+        if (productData.relatedProducts === null || productData.relatedProducts === 0 || productData.relatedProducts === '0') {
+          // If relatedProducts is null, 0 or '0', set it to an empty array
+          productData.relatedProducts = [];
+          console.log('PUT /api/products: relatedProducts was null/0, setting to empty array');
+        } else if (!Array.isArray(productData.relatedProducts)) {
+          // If it's not an array (but not null/undefined), try to format it properly
+          try {
+            if (typeof productData.relatedProducts === 'string') {
+              // Try to parse JSON if it's a string
+              if (productData.relatedProducts.trim() === '') {
+                productData.relatedProducts = [];
+              } else if (productData.relatedProducts.startsWith('[')) {
+                productData.relatedProducts = JSON.parse(productData.relatedProducts);
+              } else {
+                // Single ID as string
+                productData.relatedProducts = [productData.relatedProducts];
+              }
+            } else if (typeof productData.relatedProducts === 'object') {
+              // Handle single object case
+              productData.relatedProducts = [productData.relatedProducts];
+            } else {
+              // Any other case, set to empty
+              productData.relatedProducts = [];
+            }
+            console.log('PUT /api/products: Formatted relatedProducts:', JSON.stringify(productData.relatedProducts));
+          } catch (error) {
+            console.error('PUT /api/products: Error formatting relatedProducts, setting to empty array:', error);
+            productData.relatedProducts = [];
+          }
+        }
+      }
       
       console.log('PUT /api/products: Using data:', JSON.stringify(productData));
       
@@ -796,6 +901,40 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     try {
       // Determine the actual data to use (handle both direct data and nested structure)
       const productData = body.data || body;
+      
+      // Handle related products field - ensure it's properly formatted
+      if (productData.relatedProducts !== undefined) {
+        if (productData.relatedProducts === null || productData.relatedProducts === 0 || productData.relatedProducts === '0') {
+          // If relatedProducts is null, 0 or '0', set it to an empty array
+          productData.relatedProducts = [];
+          console.log('PATCH /api/products: relatedProducts was null/0, setting to empty array');
+        } else if (!Array.isArray(productData.relatedProducts)) {
+          // If it's not an array (but not null/undefined), try to format it properly
+          try {
+            if (typeof productData.relatedProducts === 'string') {
+              // Try to parse JSON if it's a string
+              if (productData.relatedProducts.trim() === '') {
+                productData.relatedProducts = [];
+              } else if (productData.relatedProducts.startsWith('[')) {
+                productData.relatedProducts = JSON.parse(productData.relatedProducts);
+              } else {
+                // Single ID as string
+                productData.relatedProducts = [productData.relatedProducts];
+              }
+            } else if (typeof productData.relatedProducts === 'object') {
+              // Handle single object case
+              productData.relatedProducts = [productData.relatedProducts];
+            } else {
+              // Any other case, set to empty
+              productData.relatedProducts = [];
+            }
+            console.log('PATCH /api/products: Formatted relatedProducts:', JSON.stringify(productData.relatedProducts));
+          } catch (error) {
+            console.error('PATCH /api/products: Error formatting relatedProducts, setting to empty array:', error);
+            productData.relatedProducts = [];
+          }
+        }
+      }
       
       console.log('PATCH /api/products: Using data:', JSON.stringify(productData));
       

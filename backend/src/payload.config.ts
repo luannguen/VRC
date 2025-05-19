@@ -118,9 +118,9 @@ export default buildConfig({  admin: {
   sharp,  typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },  endpoints: [
-    // Health check endpoint for frontend connectivity testing
-    // Import the health endpoint from a separate file using dynamic import
-    // to avoid require() style import which is forbidden by ESLint rules
+    // Health check endpoint has been migrated to Next.js API Route
+    // But we keep it here with a stub to avoid build errors
+    // See /app/api/health/route.ts for the new implementation
     (await import('./endpoints/health')).healthEndpoint,
   ],
   jobs: {

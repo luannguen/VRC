@@ -2,11 +2,21 @@
 
 The `/api/health` endpoint provides a way to check the status of the VRC backend API. This can be used by monitoring systems, frontend applications, or deployment pipelines to verify that the server is up and running.
 
+## Implementation Location
+
+The health endpoint is implemented as a Next.js API Route at:
+```
+/src/app/api/health/route.ts
+```
+
+> **Important**: The old Express-based implementation at `/src/endpoints/health.ts` is deprecated and only maintained as a stub that redirects to the new endpoint.
+
 ## Endpoint Details
 
 - **URL**: `/api/health`
-- **Methods**: GET, HEAD
+- **Methods**: GET, HEAD, OPTIONS
 - **Authentication**: None required (public endpoint)
+- **CORS**: Full cross-origin support with proper headers
 
 ## Response Format
 

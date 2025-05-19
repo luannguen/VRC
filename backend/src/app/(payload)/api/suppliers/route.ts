@@ -4,6 +4,7 @@ import config from '@payload-config'
 import {
   handleOptionsRequest,
   createCORSResponse,
+  createCORSHeaders,
   handleApiError
 } from '../_shared/cors';
 
@@ -58,8 +59,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
     
     // If fetching a single supplier by slug
-    if (slug) {
-      const supplier = await payload.find({
+    if (slug) {      const supplier = await payload.find({
         collection: 'technologies' as 'pages',
         where: {
           slug: { equals: slug },
@@ -68,10 +68,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         depth: 2, // Populate relationships 2 levels deep
       })
-
+      
       if (supplier.docs.length === 0) {
-        const headers = createCORSHeaders()
-        return handleApiError(error, 'Không tìm thấy nhà cung cấp.', 404)
+        return handleApiError(new Error('Not found'), 'Không tìm thấy nhà cung cấp.', 404)
       }
 
       const headers = createCORSHeaders()
