@@ -1,16 +1,11 @@
-// filepath: e:\Download\vrc\backend\src\app\(payload)\api\header-info\route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-
-// Helper function to create CORS headers
-function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*') // Allow all origins during development
-  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
-}
+import {
+  handleOptionsRequest,
+  createCORSResponse,
+  handleApiError
+} from '../_shared/cors';
 
 // Type definition for header info
 interface HeaderInfo {
@@ -95,36 +90,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         })) || [],
         moreLinks: [] // Có thể thêm logic xác định moreLinks nếu cần
       }
-    }
-
-    // Return success response
-    const headers = createCorsHeaders()
-    return NextResponse.json(headerInfo, {
-      status: 200,
-      headers,
-    })
+    }    // Return success response using createCORSResponse (which handles both data and headers)
+    return createCORSResponse(headerInfo, 200)
   } catch (error) {
     console.error('Error fetching header information:', error)
     
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Đã xảy ra lỗi khi lấy thông tin header. Vui lòng thử lại sau.',
-      },
-      {
-        status: 500,
-        headers,
-      }
-    )
+    return handleApiError(error, 'Đã xảy ra lỗi khi lấy thông tin header. Vui lòng thử lại sau.', 500)
   }
 }
 
 // Handle CORS preflight requests
-export function OPTIONS() {
-  const headers = createCorsHeaders()
-  return new NextResponse(null, {
-    status: 204,
-    headers,
-  })
+export function OPTIONS(req: NextRequest) {
+  return handleOptionsRequest(req);
 }

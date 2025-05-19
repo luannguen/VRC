@@ -2,22 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-// Helper function to create CORS headers
-function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*')
-  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
-}
+
+
+import {
+  handleOptionsRequest,
+  createCORSResponse,
+  handleApiError,
+  createCORSHeaders
+} from '../_shared/cors';
 
 // Pre-flight request handler for CORS
-export async function OPTIONS() {
-  const headers = createCorsHeaders()
-  return new Response(null, { 
-    status: 204, 
-    headers 
-  })
+export function OPTIONS(req: NextRequest) {
+  return handleOptionsRequest(req);
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -61,13 +57,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       query.slug = {
         equals: slug,
       }
-    }
-
-    if (search) {
+    }    if (search) {
       query.title = {
         like: search,
       }
-    }    // If fetching a single service by slug
+    }
+    
+    // If fetching a single service by slug
     if (slug) {
       const service = await payload.find({
         collection: 'services' as 'pages',
@@ -76,23 +72,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           status: { equals: 'published' },
         },
         depth: 2, // Populate relationships 2 levels deep
-      })
-
+      });
+      
       if (service.docs.length === 0) {
-        const headers = createCorsHeaders()
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Không tìm thấy dịch vụ.',
-          },
-          {
-            status: 404,
-            headers,
-          }
-        )
+        const headers = createCORSHeaders();
+        return handleApiError(new Error('Service not found'), 'Không tìm thấy dịch vụ.', 404);
       }
 
-      const headers = createCorsHeaders()
+      const headers = createCORSHeaders()
       return NextResponse.json(
         {
           success: true,
@@ -101,9 +88,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         {
           status: 200,
           headers,
-        }
-      )
-    }    // Otherwise fetch a list of services
+        }      )
+    }
+    
+    // Otherwise fetch a list of services
     const services = await payload.find({
       collection: 'services' as 'pages',
       where: query,
@@ -113,7 +101,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       depth: 1, // Populate relationships 1 level deep
     })
 
-    const headers = createCorsHeaders()
+    const headers = createCORSHeaders()
     return NextResponse.json(
       {
         success: true,
@@ -131,17 +119,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     )
   } catch (error) {
     console.error('Services API Error:', error)
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Có lỗi xảy ra khi lấy dữ liệu dịch vụ.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      {
-        status: 500,
-        headers,
-      }
-    )
+    const headers = createCORSHeaders()
+    return handleApiError(error, 'Có lỗi xảy ra khi lấy dữ liệu dịch vụ.', 500)
   }
 }

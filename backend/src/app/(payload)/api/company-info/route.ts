@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import {
+  createCORSHeaders,
+  createCORSResponse,
+  handleOptionsRequest,
+  handleApiError,
+  checkAuth
+} from '../_shared/cors'
 
-// Helper function to create CORS headers
-function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*') // Cho phép mọi origin
-  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
+// Pre-flight request handler for CORS
+export function OPTIONS(req: NextRequest) {
+  console.log('OPTIONS /api/company-info: Handling preflight request')
+  return handleOptionsRequest(req, ['GET', 'OPTIONS'])
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -26,57 +30,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     // Check if authentication is required
     if (companyInfo?.requireAuth) {
-      // Check for Bearer token
-      const authHeader = req.headers.get('authorization')
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        // Check for Payload cookie
-        const cookies = req.headers.get('cookie')
-        const hasPayloadCookie = cookies && cookies.includes('payload-token=')
-        
-        if (!hasPayloadCookie) {
-          const headers = createCorsHeaders()
-          return NextResponse.json(
-            {
-              success: false,
-              message: 'Xác thực thất bại. Vui lòng đăng nhập để truy cập thông tin.',
-            },
-            {
-              status: 401,
-              headers,
-            }
-          )
-        }
+      const isAuthenticated = await checkAuth(req, true)
+      
+      if (!isAuthenticated) {
+        return createCORSResponse(
+          {
+            success: false,
+            message: 'Xác thực thất bại. Vui lòng đăng nhập để truy cập thông tin.',
+          },
+          401
+        )
       }
-    }
-
-    // Return success response
-    const headers = createCorsHeaders()
-    return NextResponse.json(companyInfo, {
-      status: 200,
-      headers,
-    })
+    }    // Return success response
+    return createCORSResponse(companyInfo, 200)
   } catch (error) {
     console.error('Error fetching company information:', error)
-    
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Đã xảy ra lỗi khi lấy thông tin công ty. Vui lòng thử lại sau.',
-      },
-      {
-        status: 500,
-        headers,
-      }
-    )
+    return handleApiError(error, 'Đã xảy ra lỗi khi lấy thông tin công ty. Vui lòng thử lại sau.')
   }
-}
-
-// Handle CORS preflight requests
-export function OPTIONS() {
-  const headers = createCorsHeaders()
-  return new NextResponse(null, {
-    status: 204,
-    headers,
-  })
 }

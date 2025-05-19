@@ -1,88 +1,105 @@
-import type { RequiredDataFromCollectionSlug } from 'payload'
+// filepath: e:\Download\vrc\backend\src\endpoints\seed\home-static.ts
+// Default static content for the home page when no database entry exists
+// This serves as a fallback until proper content is seeded
 
-// Used for pre-seeded content so that the homepage is not empty
+import type { RequiredDataFromCollectionSlug } from 'payload';
+
 export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
+  id: 'static-home',
+  title: 'Welcome to Our Website',
   slug: 'home',
-  _status: 'published',
+  _status: 'published' as const,
+  meta: {
+    title: 'Home | Our Website',
+    description: 'Welcome to our website. Find products and services tailored to your needs.',
+  },
   hero: {
-    type: 'lowImpact',
+    type: 'mediumImpact' as const,
     richText: {
       root: {
         type: 'root',
         children: [
           {
-            type: 'heading',
+            type: 'h1',
             children: [
               {
+                text: 'Welcome to Our Website',
                 type: 'text',
-                detail: 0,
-                format: 0,
-                mode: 'normal',
-                style: '',
-                text: 'Payload Website Template',
-                version: 1,
-              },
+              }
             ],
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            tag: 'h1',
-            version: 1,
           },
           {
-            type: 'paragraph',
+            type: 'p',
             children: [
               {
-                type: 'link',
-                children: [
-                  {
-                    type: 'text',
-                    detail: 0,
-                    format: 0,
-                    mode: 'normal',
-                    style: '',
-                    text: 'Visit the admin dashboard',
-                    version: 1,
-                  },
-                ],
-                direction: 'ltr',
-                fields: {
-                  linkType: 'custom',
-                  newTab: false,
-                  url: '/admin',
-                },
-                format: '',
-                indent: 0,
-                version: 2,
-              },
-              {
+                text: 'Discover our products and services',
                 type: 'text',
-                detail: 0,
-                format: 0,
-                mode: 'normal',
-                style: '',
-                text: ' to make your account and seed content for your website.',
-                version: 1,
-              },
+              }
             ],
-            direction: 'ltr',
-            format: '',
-            indent: 0,
-            textFormat: 0,
-            version: 1,
-          },
+          }
         ],
         direction: 'ltr',
-        format: '',
+        format: 'left',
         indent: 0,
-        version: 1,
-      },
+      }
     },
+    links: [
+      {
+        link: {
+          type: 'custom' as const,
+          url: '/products',
+          label: 'Browse Products',
+          appearance: 'default' as const,
+        }
+      },
+      {
+        link: {
+          type: 'custom' as const,
+          url: '/contact',
+          label: 'Contact Us',
+          appearance: 'outline' as const,
+        }
+      },
+    ],
   },
-  meta: {
-    description: 'An open-source website built with Payload and Next.js.',
-    title: 'Payload Website Template',
-  },
-  title: 'Home',
-  layout: [],
-}
+  layout: [
+    {
+      blockType: 'content' as const,
+      columns: [
+        {
+          size: 'full' as const,
+          richText: {
+            root: {
+              type: 'root',
+              children: [
+                {
+                  type: 'h2',
+                  children: [
+                    {
+                      text: 'About Us',
+                      type: 'text',
+                    }
+                  ],
+                },
+                {
+                  type: 'p',
+                  children: [
+                    {
+                      text: 'We provide high-quality products and excellent customer service.',
+                      type: 'text',
+                    }
+                  ],
+                }
+              ],
+              direction: 'ltr',
+              format: 'left',
+              indent: 0,
+            }
+          },
+        },
+      ],
+    },
+  ],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};

@@ -1,8 +1,10 @@
+// filepath: e:\Download\vrc\backend\src\seed\utils\pathConfig.ts
 /**
  * Cấu hình đường dẫn tuyệt đối cho dự án
  * Giúp giảm thiểu rủi ro khi cấu trúc thư mục thay đổi
  */
 import path from 'path';
+import fs from 'fs';
 
 // Xác định đường dẫn gốc của dự án
 // Sử dụng __dirname thay vì process.cwd() để đảm bảo đường dẫn luôn đúng
@@ -29,7 +31,7 @@ export function getAbsolutePath(relativePath: string): string {
 // Hàm kiểm tra xem đường dẫn có tồn tại không
 export function pathExists(pathToCheck: string): boolean {
   try {
-    const fs = require('fs');
+    // Using the fs import at the top of the file
     return fs.existsSync(pathToCheck);
   } catch (error) {
     console.error(`Error checking if path exists: ${pathToCheck}`, error);

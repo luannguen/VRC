@@ -31,13 +31,15 @@ import { getServerSideURL } from './utilities/getURL'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-export default buildConfig({  admin: {    components: {
+export default buildConfig({  admin: {
+    components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeLogin` statement on line 15.
       beforeLogin: ['@/components/BeforeLogin'],      // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
       // Feel free to delete this at any time. Simply remove the line below and the import `BeforeDashboard` statement on line 15.
-      beforeDashboard: ['@/components/BeforeDashboard'],      // Add logout button to the bottom of the left menu
-      afterNavLinks: ['@/components/AdminUI/DynamicLogout', '@/components/AdminUI/DynamicSidebar', '@/components/AdminUI/DynamicAdminStyles'],
+      beforeDashboard: ['@/components/BeforeDashboard'],
+      // Add only essential UI components to avoid conflicts with bulk operations
+      afterNavLinks: ['@/components/AdminUI/DynamicLogout']
     },
     importMap: {
       baseDir: path.resolve(dirname),
@@ -85,15 +87,27 @@ export default buildConfig({  admin: {    components: {
     EventCategories,
     Events,
     Services,
-    Technologies
-  ],cors: {
-    origins: [
-      getServerSideURL(),                                    // Backend URL
-      process.env.FRONTEND_URL || 'http://localhost:5173',   // Default Frontend Vite URL
-      'http://localhost:8080', 'http://localhost:8081',                              // Your custom frontend port
-      // Thêm domain production nếu cần
-    ].filter(Boolean),    
-    headers: ['authorization', 'content-type', 'x-custom-header'], // Thêm headers cần thiết
+    Technologies  ],  cors: {
+    origins: process.env.NODE_ENV === 'production'
+      ? [
+          getServerSideURL(),                                  // Backend URL
+          process.env.FRONTEND_URL,                            // Frontend URL (production)
+          // Thêm domain production khác nếu cần
+        ].filter(Boolean) as string[]
+      : [
+          getServerSideURL(),                                  // Backend URL
+          process.env.FRONTEND_URL || 'http://localhost:5173', // Frontend Vite URL
+          'http://localhost:8080', 'http://localhost:8081',    // Custom frontend ports
+          '*',                                                 // Allow all origins for development
+        ].filter(Boolean) as string[],
+    headers: [
+      'authorization', 
+      'content-type', 
+      'x-custom-header', 
+      'cache-control', 
+      'x-requested-with',
+      'accept',
+    ]
   },
   globals: [Header, Footer, CompanyInfo],
   plugins: [
@@ -105,79 +119,9 @@ export default buildConfig({  admin: {    components: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },  endpoints: [
     // Health check endpoint for frontend connectivity testing
-    {
-      path: '/health',
-      method: 'get',
-      handler: async (req) => {
-        try {
-          // Prepare health data
-          const healthData = {
-            status: 'ok',
-            timestamp: new Date().toISOString(),
-            server: 'VRC Backend API',
-            environment: process.env.NODE_ENV || 'development',
-            apiVersion: '1.0.0',
-          };
-          
-          // For HEAD requests, just return empty response
-          if (req.method?.toLowerCase() === 'head') {
-            return new Response(null, { 
-              status: 200,
-              headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'X-Health-Status': 'ok',
-                'X-Backend-Available': 'true',
-                'X-Health-Timestamp': new Date().toISOString()
-              }
-            });
-          }
-          
-          // For GET requests, return the full health data
-          return Response.json(healthData, {
-            status: 200,
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'X-Health-Status': 'ok',
-              'X-Backend-Available': 'true',
-              'X-Health-Timestamp': new Date().toISOString()
-            }
-          });
-        } catch (error) {
-          // For error cases, still return a valid response
-          const errorData = {
-            status: 'warning',
-            message: 'Health check experienced an error but the server is still running',
-            timestamp: new Date().toISOString(),
-          };
-          
-          // For HEAD requests
-          if (req.method?.toLowerCase() === 'head') {
-            return new Response(null, { 
-              status: 200,
-              headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'X-Health-Status': 'warning',
-                'X-Backend-Available': 'true',
-                'X-Health-Timestamp': new Date().toISOString()
-              }
-            });
-          }
-          
-          // For GET requests
-          return Response.json(errorData, {
-            status: 200,
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'X-Health-Status': 'warning',
-              'X-Backend-Available': 'true',
-              'X-Health-Timestamp': new Date().toISOString()
-            }
-          });
-        }
-      }
-    },
+    // Import the health endpoint from a separate file using dynamic import
+    // to avoid require() style import which is forbidden by ESLint rules
+    (await import('./endpoints/health')).healthEndpoint,
   ],
   jobs: {
     access: {

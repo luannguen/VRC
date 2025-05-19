@@ -2,22 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-// Helper function to create CORS headers
-function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*')
-  headers.append('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
-}
+
+
+import {
+  handleOptionsRequest,
+  createCORSResponse,
+  handleApiError,
+  createCORSHeaders
+} from '../_shared/cors';
 
 // Pre-flight request handler for CORS
-export async function OPTIONS() {
-  const headers = createCorsHeaders()
-  return new Response(null, { 
-    status: 204, 
-    headers 
-  })
+export function OPTIONS(req: NextRequest) {
+  return handleOptionsRequest(req);
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -83,23 +79,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           status: { equals: 'published' },
         },
         depth: 2, // Populate relationships 2 levels deep
-      })
-
+      });
+      
       if (project.docs.length === 0) {
-        const headers = createCorsHeaders()
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Không tìm thấy dự án.',
-          },
-          {
-            status: 404,
-            headers,
-          }
-        )
+        const headers = createCORSHeaders();
+        return handleApiError(new Error('Project not found'), 'Không tìm thấy dự án.', 404);
       }
 
-      const headers = createCorsHeaders()
+      const headers = createCORSHeaders()
       return NextResponse.json(
         {
           success: true,
@@ -120,7 +107,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       depth: 1, // Populate relationships 1 level deep
     })
 
-    const headers = createCorsHeaders()
+    const headers = createCORSHeaders()
     return NextResponse.json(
       {
         success: true,
@@ -138,17 +125,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     )
   } catch (error) {
     console.error('Projects API Error:', error)
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Có lỗi xảy ra khi lấy dữ liệu dự án.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      {
-        status: 500,
-        headers,
-      }
-    )
+    const headers = createCORSHeaders()
+    return handleApiError(error, 'Có lỗi xảy ra khi lấy dữ liệu dự án.', 500)
   }
 }

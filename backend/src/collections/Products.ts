@@ -18,12 +18,82 @@ export const Products: CollectionConfig = {
       defaultLimit: 20, 
       limits: [10, 20, 50, 100],
     },
-  },
-  access: {
+    enableRichTextLink: false,
+    enableRichTextRelationship: false,
+  },access: {
     create: authenticated,
     read: authenticatedOrPublished,
     update: authenticated,
     delete: authenticated,
+  },  hooks: {
+    // Implement proper hooks for handling product deletion
+    beforeDelete: [
+      async ({ req, id }) => {
+        try {
+          console.log(`Preparing to delete product with ID: ${id}`);
+          
+          // Simpler approach: find products that reference this one and update them
+          const referencingProducts = await req.payload.find({
+            collection: 'products',
+            where: {
+              'relatedProducts.value': {
+                equals: id
+              }
+            },
+          });
+          
+          if (referencingProducts.docs.length > 0) {
+            console.log(`Found ${referencingProducts.docs.length} products referencing this product. Updating references...`);
+            
+            for (const product of referencingProducts.docs) {
+              if (product.relatedProducts && Array.isArray(product.relatedProducts)) {
+                // Remove the reference to the product being deleted
+                const updatedRelatedProducts = product.relatedProducts.filter((relatedItem: any) => {
+                  if (typeof relatedItem === 'string') {
+                    return relatedItem !== id;
+                  }
+                  // Handle case where it's an object with value property
+                  if (relatedItem && typeof relatedItem === 'object' && 'value' in relatedItem) {
+                    return relatedItem.value !== id;
+                  }
+                  return true;
+                });
+                
+                try {
+                  await req.payload.update({
+                    collection: 'products',
+                    id: product.id,
+                    data: {
+                      relatedProducts: updatedRelatedProducts
+                    }
+                  });
+                  console.log(`Updated references in product: ${product.id}`);
+                } catch (updateError) {
+                  console.error(`Failed to update references in product ${product.id}:`, updateError);
+                }
+              }
+            }
+          }
+          
+          return true; // Proceed with deletion
+        } catch (error) {
+          console.error(`Error in beforeDelete hook for product ${id}:`, error);
+          // Return true to allow deletion to continue despite errors in the hook
+          return true;
+        }
+      }
+    ],
+    afterDelete: [
+      async ({ req, id, doc }) => {
+        try {
+          console.log(`Product deleted successfully: ${id}`);
+          return doc;
+        } catch (error) {
+          console.error(`Error in afterDelete hook for product ${id}:`, error);
+          return doc;
+        }
+      }
+    ]
   },
   fields: [
     {

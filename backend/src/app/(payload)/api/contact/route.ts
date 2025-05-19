@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import {
+  handleOptionsRequest,
+  createCORSResponse,
+  handleApiError
+} from '../_shared/cors';
 
-// Helper function to create CORS headers
-function createCorsHeaders() {
-  const headers = new Headers()
-  headers.append('Access-Control-Allow-Origin', '*') // Cho phép mọi origin
-  headers.append('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  headers.append('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  return headers
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -20,21 +17,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Parse the request body
     const body = await req.json()
-    const { name, email, phone, subject, message } = body
-
-    // Validate required fields
+    const { name, email, phone, subject, message } = body    // Validate required fields
     if (!name || !email || !message) {
-      const headers = createCorsHeaders()
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Vui lòng cung cấp đầy đủ thông tin: Họ tên, Email và Nội dung',
-        },
-        {
-          status: 400,
-          headers,
-        }
-      )
+      return handleApiError(new Error('Missing required fields'), 'Vui lòng cung cấp đầy đủ thông tin: Họ tên, Email và Nội dung', 400)
     }
 
     // Create a new contact submission
@@ -48,46 +33,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         message,
         status: 'new',
       },
-    })
-
-    // Return success response
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Yêu cầu liên hệ đã được gửi thành công',
-        submission: {
-          id: submission.id,
-          createdAt: submission.createdAt,
-        },
-      },
-      {
-        status: 200,
-        headers,
+    })    // Return success response
+    return createCORSResponse({
+      success: true,
+      message: 'Yêu cầu liên hệ đã được gửi thành công',
+      submission: {
+        id: submission.id,
+        createdAt: submission.createdAt,
       }
-    )
-  } catch (error) {
+    }, 200)  } catch (error) {
     console.error('Error submitting contact form:', error)
-    
-    const headers = createCorsHeaders()
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Đã xảy ra lỗi khi gửi yêu cầu liên hệ. Vui lòng thử lại sau.',
-      },
-      {
-        status: 500,
-        headers,
-      }
-    )
+    return handleApiError(error, 'Đã xảy ra lỗi khi gửi yêu cầu liên hệ. Vui lòng thử lại sau.', 500)
   }
 }
 
 // Handle CORS preflight requests
-export function OPTIONS() {
-  const headers = createCorsHeaders()
-  return new NextResponse(null, {
-    status: 204,
-    headers,
-  })
+export function OPTIONS(req: NextRequest) {
+  return handleOptionsRequest(req);
 }
