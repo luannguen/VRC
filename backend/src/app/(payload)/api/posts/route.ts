@@ -5,15 +5,18 @@ import {
   handleOptionsRequest,
   createCORSResponse,
   handleApiError,
-  createCORSHeaders
+  createCorsHeaders,
+  withCORS,
+  checkAuth
 } from '../_shared/cors'
+import { extractPostIds, extractPostIdsSync } from '../_shared/extractPostIds'
 
 // Pre-flight request handler for CORS
 export function OPTIONS(req: NextRequest) {
-  return handleOptionsRequest(req);
+  return handleOptionsRequest(req, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']);
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export const GET = withCORS(async (req: NextRequest): Promise<NextResponse> => {
   try {
     // Initialize Payload
     const payload = await getPayload({
@@ -23,17 +26,41 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const url = new URL(req.url)
     
     // Parse query parameters
-    const id = url.searchParams.get('id')
+    const { postId } = extractPostIdsSync(req);
     const slug = url.searchParams.get('slug')
     const page = Number(url.searchParams.get('page')) || 1
     const limit = Number(url.searchParams.get('limit')) || 10
     const search = url.searchParams.get('search')
+    const category = url.searchParams.get('category')
+    const sort = url.searchParams.get('sort') || 'createdAt'
+    const order = url.searchParams.get('order') || 'desc'
     
-    // Extract post ID from path if present (e.g. /api/posts/123456)
-    const path = url.pathname
-    const pathSegments = path.split('/')
-    const pathId = pathSegments[pathSegments.length - 1]
-    const postId = id || (pathId && pathId !== 'posts' ? pathId : null)
+    // Extract post ID from path if present (e.g. /api/posts/123456) when not found in query
+    let pathId = null;
+    if (!postId) {
+      const path = url.pathname
+      const pathSegments = path.split('/')
+      pathId = pathSegments[pathSegments.length - 1]
+      
+      // Only treat as ID if not "posts" (route name)
+      if (pathId && pathId !== 'posts') {
+        try {
+          const post = await payload.findByID({
+            collection: 'posts',
+            id: pathId,
+            depth: 1, // Populate references 1 level deep
+          })
+          
+          return createCORSResponse({
+            success: true,
+            data: post,
+          }, 200)
+        } catch (error) {
+          console.error(`Error fetching post with ID ${pathId}:`, error)
+          return handleApiError(error, `Không tìm thấy bài viết với ID: ${pathId}`, 404)
+        }
+      }
+    }
     
     // If fetching a single post by ID
     if (postId) {
@@ -83,26 +110,67 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         return handleApiError(error, `Không tìm thấy bài viết với slug: ${slug}`, 404)
       }
     }
+      // Otherwise fetch a list of posts with advanced filtering
+    const query: any = {}
     
-    // Otherwise fetch a list of posts
-    const query: any = {
-      status: {
-        equals: 'published'
+    // Handle status filter - allow filtering by any status if specified, default to published
+    const statusParam = url.searchParams.get('status') || 'published'
+    if (statusParam !== 'all') {
+      query.status = {
+        equals: statusParam
       }
     }
     
+    // Add search filter - can search in title and content
     if (search) {
-      query.title = {
-        like: search
+      // Use OR to search in both title and content
+      query.or = [
+        {
+          title: {
+            like: search
+          }
+        },
+        {
+          content: {
+            like: search
+          }
+        }
+      ]
+    }
+    
+    // Add category filter
+    if (category) {
+      query.categories = {
+        contains: category
       }
     }
     
+    // Add date range filter if provided
+    const fromDate = url.searchParams.get('fromDate')
+    const toDate = url.searchParams.get('toDate')
+    
+    if (fromDate || toDate) {
+      query.createdAt = {}
+      
+      if (fromDate) {
+        query.createdAt.greater_than_equal = new Date(fromDate).toISOString()
+      }
+      
+      if (toDate) {
+        query.createdAt.less_than_equal = new Date(toDate).toISOString()
+      }
+    }
+    
+    console.log('Posts query:', JSON.stringify(query, null, 2))
+    
+    // Default sort by createdAt in descending order, unless specified otherwise
     const posts = await payload.find({
       collection: 'posts',
       where: query,
       page,
       limit,
       depth: 1,
+      sort: sort ? (order === 'asc' ? sort : `-${sort}`) : '-createdAt',
     })
     
     return createCORSResponse({
@@ -117,5 +185,537 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Posts API Error:', error);
     return handleApiError(error, 'Có lỗi xảy ra khi tải dữ liệu bài viết', 500);
+  }
+});
+
+/**
+ * Delete a post or multiple posts
+ * 
+ * DELETE /api/posts?id=123456
+ * DELETE /api/posts?ids=123456,789012
+ * 
+ * Requires authentication
+ */
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    console.log('DELETE /api/posts: Request received');
+    console.log('Request URL:', req.url);
+    console.log('Referer:', req.headers.get('referer'));
+    
+    // Special handling for admin panel requests
+    const referer = req.headers.get('referer') || '';
+    const isAdminRequest = referer.includes('/admin');
+    
+    if (isAdminRequest) {
+      console.log('Detected admin panel request for post deletion');
+    }
+    
+    // Require authentication with bypass for admin
+    const isAuthenticated = await checkAuth(req, !isAdminRequest) // Only strictly require auth for non-admin requests
+    if (!isAuthenticated && !isAdminRequest) {
+      const headers = createCorsHeaders()
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Xác thực thất bại. Vui lòng đăng nhập để thực hiện chức năng này.',
+          errorType: 'authentication',
+        },
+        {
+          status: 401,
+          headers,
+        }
+      )
+    }    // Initialize Payload
+    const payload = await getPayload({
+      config,
+    })
+
+    // Extract post ID using the helper function
+    const { postId, postIds } = await extractPostIds(req);
+
+    const headers = createCorsHeaders()    // Handle bulk delete with multiple IDs
+    if (postIds && postIds.length > 0) {
+      const idsArray = postIds;
+      
+      if (idsArray.length === 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Không có ID bài viết được cung cấp',
+            errorType: 'validation',
+          },
+          {
+            status: 400,
+            headers,
+          }
+        )
+      }
+      
+      // Delete multiple posts
+      const results = [];
+      const errors = [];
+      
+      // To avoid conflicts in references, first collect information about posts to delete
+      const postsToDelete = [];
+      for (const id of idsArray) {
+        try {
+          const post = await payload.findByID({
+            collection: 'posts',
+            id,
+            depth: 0,
+          }).catch(() => null);
+          
+          if (post) {
+            postsToDelete.push({ id, title: post.title });
+          }
+        } catch (err) {
+          console.error(`Error retrieving post with ID ${id} before deletion:`, err);
+          errors.push({ id, error: 'Không thể tìm thấy bài viết này' });
+        }
+      }
+      
+      // Then delete each post
+      for (const post of postsToDelete) {
+        try {
+          await payload.delete({
+            collection: 'posts',
+            id: post.id,
+          });
+          results.push({ id: post.id, title: post.title, success: true });
+        } catch (err: any) {
+          errors.push({ 
+            id: post.id, 
+            title: post.title, 
+            error: err.message || 'Lỗi không xác định',
+            errorDetail: err.toString() 
+          });
+        }
+      }
+      
+      // Create more detailed status message about deletion results
+      let statusMessage;
+      if (results.length === 0) {
+        statusMessage = `Không thể xóa bất kỳ bài viết nào. ${errors.length} lỗi xảy ra.`;
+      } else if (errors.length === 0) {
+        statusMessage = `Đã xóa thành công tất cả ${results.length} bài viết.`;
+      } else {
+        statusMessage = `Đã xóa ${results.length}/${idsArray.length} bài viết. ${errors.length} lỗi xảy ra.`;
+      }
+
+      return NextResponse.json(
+        {
+          success: errors.length === 0,
+          message: statusMessage,
+          results,
+          errors: errors.length > 0 ? errors : undefined,
+        },
+        {
+          status: errors.length === 0 ? 200 : 207, // Use 207 Multi-Status for partial success
+          headers,
+        }
+      )
+    }
+
+    // Handle single delete
+    if (!postId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Không thể xác định ID bài viết từ yêu cầu',
+          errorType: 'validation',
+        },
+        {
+          status: 400,
+          headers,
+        }
+      )
+    }
+    
+    try {
+      // Find the post first (to log what's being deleted)
+      const post = await payload.findByID({
+        collection: 'posts',
+        id: postId,
+      }).catch(() => null);
+      
+      if (!post) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Không tìm thấy bài viết với ID: ${postId}`,
+            errorType: 'notFound',
+          },
+          {
+            status: 404,
+            headers,
+          }
+        );
+      }
+        // Delete the post
+      const deletedPost = await payload.delete({
+        collection: 'posts',
+        id: postId,
+      });
+
+      // Log successful deletion
+      console.log(`Successfully deleted post: ${post?.title || postId} (ID: ${postId})`);
+
+      // Check if request is from admin panel and format response accordingly
+      const referer = req.headers.get('referer') || '';
+      const isAdminRequest = referer.includes('/admin');
+      
+      if (isAdminRequest) {
+        // Format response similar to Payload CMS expected structure for admin
+        console.log('Returning admin-compatible response format');
+        return NextResponse.json(
+          deletedPost,
+          {
+            status: 200,
+            headers,
+          }
+        );
+      }
+      
+      // Standard API response for non-admin requests
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Đã xóa bài viết thành công: ${post?.title || postId}`,
+          data: { id: postId, title: post?.title }
+        },
+        {
+          status: 200,
+          headers,
+        }
+      );    } catch (err: any) {
+      console.error(`Error deleting post ${postId}:`, err);
+      
+      // Check if request is from admin panel and format response accordingly
+      const referer = req.headers.get('referer') || '';
+      const isAdminRequest = referer.includes('/admin');
+      
+      if (isAdminRequest) {
+        // Format admin compatible error
+        console.log('Returning admin-compatible error format');
+        // Admin panel typically expects this structure
+        return NextResponse.json(
+          {
+            errors: [
+              {
+                message: err.message || 'Lỗi khi xóa bài viết',
+                name: 'DeleteError',
+              }
+            ],
+          },
+          {
+            status: 400, // Admin UI tends to handle 400 better than 500
+            headers,
+          }
+        );
+      }
+      
+      // Standard API error response
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Lỗi khi xóa bài viết với ID: ${postId}`,
+          error: err.message || 'Lỗi không xác định',
+          errorDetail: err.toString(),
+          errorType: 'serverError',
+        },
+        {
+          status: 500,
+          headers,
+        }
+      );
+    }  } catch (error) {
+    console.error('Posts DELETE API Error:', error);
+    const headers = createCorsHeaders();
+    
+    // Check if request is from admin panel
+    const referer = req.headers.get('referer') || '';
+    const isAdminRequest = referer.includes('/admin');
+    
+    if (isAdminRequest) {
+      // Format admin compatible error
+      console.log('Returning admin-compatible general error format');
+      return NextResponse.json(
+        {
+          errors: [
+            {
+              message: (error as any)?.message || 'Lỗi khi xóa bài viết',
+              name: 'GeneralError',
+            }
+          ],
+        },
+        {
+          status: 400,
+          headers,
+        }
+      );
+    }
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Có lỗi xảy ra khi xử lý yêu cầu xoá bài viết',
+        error: (error as any)?.message || 'Lỗi không xác định',
+        errorType: 'serverError',
+      },
+      {
+        status: 500,
+        headers,
+      }
+    );
+  }
+}
+
+/**
+ * Handle PATCH requests for publishing/unpublishing posts
+ * 
+ * PATCH /api/posts?id=123456
+ * PATCH /api/posts?where[and][0][_status][not_equals]=draft&where[and][1][id][in][0]=123456
+ * PATCH /api/posts?where[and][0][_status][not_equals]=published&where[and][1][id][in][0]=123456&draft=true
+ */
+export async function PATCH(req: NextRequest): Promise<NextResponse> {
+  console.log('PATCH /api/posts: Request received');
+  console.log('Request URL:', req.url);
+  console.log('Referer:', req.headers.get('referer'));
+  
+  try {
+    // Special handling for admin panel requests
+    const referer = req.headers.get('referer') || '';
+    const isAdminRequest = referer.includes('/admin');
+    
+    if (isAdminRequest) {
+      console.log('Detected admin panel request for post status update');
+    }
+    
+    // Require authentication with bypass for admin
+    const isAuthenticated = await checkAuth(req, !isAdminRequest);
+    if (!isAuthenticated && !isAdminRequest) {
+      const headers = createCorsHeaders();
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Xác thực thất bại. Vui lòng đăng nhập để thực hiện chức năng này.',
+          errorType: 'authentication',
+        },
+        {
+          status: 401,
+          headers,
+        }
+      );
+    }
+    
+    // Initialize Payload
+    const payload = await getPayload({
+      config,
+    });
+    
+    const headers = createCorsHeaders();
+    
+    // Extract post ID using the helper function
+    const { postId, postIds } = await extractPostIds(req);
+    
+    // Parse the request body for update data
+    const json = await req.json().catch(() => ({}));
+    
+    // Check if we're dealing with a publish/unpublish operation
+    const url = new URL(req.url);
+    const isDraftParam = url.searchParams.get('draft');
+    const isDraft = isDraftParam === 'true';
+    
+    // Check for complex status query param patterns
+    const isPublishOperation = url.toString().includes('_status%5D%5Bnot_equals%5D=draft');
+    const isUnpublishOperation = url.toString().includes('_status%5D%5Bnot_equals%5D=published');
+    
+    console.log('Status operation details:', { 
+      isDraft, 
+      isPublishOperation, 
+      isUnpublishOperation,
+      postId,
+      postIds: postIds.length > 0 ? postIds : undefined
+    });
+    
+    // Determine the target post ID
+    let targetId = postId;
+      // If no direct ID, check complex query patterns
+    if (!targetId && postIds.length > 0) {
+      targetId = postIds[0] || null;
+    }
+    
+    if (!targetId && isAdminRequest) {
+      // Try to extract ID from complex query params that Payload admin might use
+      for (const [key, value] of url.searchParams.entries()) {
+        if (key.includes('id') && key.includes('in')) {
+          targetId = value;
+          console.log(`Extracted post ID from complex query: ${value}`);
+          break;
+        }
+      }
+    }
+    
+    // If still no ID found, return error
+    if (!targetId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Không thể xác định ID bài viết từ yêu cầu',
+          errorType: 'validation',
+        },
+        {
+          status: 400,
+          headers,
+        }
+      );
+    }
+    
+    // Find the post first to get current status
+    try {
+      const post = await payload.findByID({
+        collection: 'posts',
+        id: targetId,
+        depth: 0
+      }).catch(() => null);
+      
+      if (!post) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Không tìm thấy bài viết với ID: ${targetId}`,
+            errorType: 'notFound',
+          },
+          {
+            status: 404,
+            headers,
+          }
+        );
+      }
+      
+      // Determine status update operation
+      const statusUpdate = json.status || (isDraft ? 'draft' : (isPublishOperation ? 'published' : undefined));
+      console.log('Status update:', statusUpdate);
+      
+      // Prepare update data
+      const updateData: Record<string, any> = { 
+        ...json
+      };
+      
+      if (statusUpdate) {
+        updateData.status = statusUpdate;
+      }
+      
+      // Execute the update
+      const updatedPost = await payload.update({
+        collection: 'posts',
+        id: targetId,
+        data: updateData,
+      });
+      
+      // Log successful update
+      const statusMessage = statusUpdate === 'published' ? 'xuất bản' : 
+                          (statusUpdate === 'draft' ? 'lưu nháp' : 'cập nhật');
+      console.log(`Successfully ${statusMessage} post: ${updatedPost.title || targetId}`);
+      
+      // Format response depending on the source of the request
+      if (isAdminRequest) {
+        console.log('Returning admin-compatible response format');
+        return NextResponse.json(
+          updatedPost,
+          {
+            status: 200,
+            headers,
+          }
+        );
+      }
+      
+      // Standard API response for non-admin requests
+      return NextResponse.json(
+        {
+          success: true,
+          message: `Đã ${statusMessage} bài viết thành công: ${updatedPost.title || targetId}`,
+          data: updatedPost
+        },
+        {
+          status: 200,
+          headers,
+        }
+      );
+    } catch (err: any) {
+      console.error(`Error updating post ${targetId}:`, err);
+      
+      // Check if request is from admin panel and format response accordingly
+      if (isAdminRequest) {
+        console.log('Returning admin-compatible error format');
+        return NextResponse.json(
+          {
+            errors: [
+              {
+                message: err.message || 'Lỗi khi cập nhật bài viết',
+                name: 'UpdateError',
+              }
+            ],
+          },
+          {
+            status: 400, // Admin UI tends to handle 400 better than 500
+            headers,
+          }
+        );
+      }
+      
+      // Standard API error response
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Lỗi khi cập nhật bài viết với ID: ${targetId}`,
+          error: err.message || 'Lỗi không xác định',
+          errorType: 'serverError',
+        },
+        {
+          status: 500,
+          headers,
+        }
+      );
+    }
+  } catch (error) {
+    console.error('Posts PATCH API Error:', error);
+    const headers = createCorsHeaders();
+    
+    // Check if request is from admin panel
+    const referer = req.headers.get('referer') || '';
+    const isAdminRequest = referer.includes('/admin');
+    
+    if (isAdminRequest) {
+      // Format admin compatible error
+      console.log('Returning admin-compatible general error format');
+      return NextResponse.json(
+        {
+          errors: [
+            {
+              message: (error as any)?.message || 'Lỗi khi cập nhật bài viết',
+              name: 'GeneralError',
+            }
+          ],
+        },
+        {
+          status: 400,
+          headers,
+        }
+      );
+    }
+    
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Có lỗi xảy ra khi xử lý yêu cầu cập nhật bài viết',
+        error: (error as any)?.message || 'Lỗi không xác định',
+        errorType: 'serverError',
+      },
+      {
+        status: 500,
+        headers,
+      }
+    );
   }
 }
