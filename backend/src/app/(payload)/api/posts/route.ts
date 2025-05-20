@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
+import { SanitizedConfig } from 'payload/config'
+// Using a direct import to avoid TypeScript path resolution issues
+// At runtime, Next.js will resolve @payload-config correctly
 import config from '@payload-config'
+
+// Use imported config directly in the code
+// This way we avoid TypeScript errors but the code will still work at runtime
 import {
   handleOptionsRequest,
   createCORSResponse,
   handleApiError,
-  createCORSHeaders
+  createCORSHeaders,
+  checkAuth
 } from '../_shared/cors'
 
 // Pre-flight request handler for CORS
@@ -16,6 +23,7 @@ export function OPTIONS(req: NextRequest) {
 export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     // Initialize Payload
+    const config = await getConfig()
     const payload = await getPayload({
       config,
     })
@@ -86,7 +94,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     
     // Otherwise fetch a list of posts
     const query: any = {
-      status: {
+      _status: {
         equals: 'published'
       }
     }
@@ -117,5 +125,134 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Posts API Error:', error);
     return handleApiError(error, 'Có lỗi xảy ra khi tải dữ liệu bài viết', 500);
+  }
+}
+
+// Handle DELETE requests to unpublish or permanently delete posts
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  try {
+    // Check for authentication
+    const isAuthenticated = await checkAuth(req, true);
+    if (!isAuthenticated) {
+      return createCORSResponse({
+        success: false,
+        message: 'Unauthorized. You must be logged in to perform this action.',
+      }, 401);
+    }
+    
+    // Initialize Payload
+    const config = await getConfig()
+    const payload = await getPayload({
+      config,
+    });
+    
+    const url = new URL(req.url);
+    
+    // Extract post ID from path (e.g. /api/posts/123456)
+    const path = url.pathname;
+    const pathSegments = path.split('/');
+    const postId = pathSegments[pathSegments.length - 1];
+    
+    if (!postId || postId === 'posts') {
+      return createCORSResponse({
+        success: false,
+        message: 'No post ID provided for deletion.',
+      }, 400);
+    }
+    
+    // Check if we should perform a soft delete (unpublish) or hard delete
+    const hardDelete = url.searchParams.get('hardDelete') === 'true';
+    
+    if (hardDelete) {
+      // Perform permanent deletion
+      await payload.delete({
+        collection: 'posts',
+        id: postId,
+      });
+      
+      return createCORSResponse({
+        success: true,
+        message: 'Post permanently deleted successfully.',
+      }, 200);
+    } else {
+      // Soft delete - just unpublish by setting _status to 'draft'
+      await payload.update({
+        collection: 'posts',
+        id: postId,
+        data: {
+          _status: 'draft',
+        },
+      });
+      
+      return createCORSResponse({
+        success: true,
+        message: 'Post unpublished successfully.',
+      }, 200);
+    }
+  } catch (error) {
+    console.error('Delete Post API Error:', error);
+    return handleApiError(error, 'Có lỗi xảy ra khi xóa bài viết', 500);
+  }
+}
+
+// Handle PATCH requests to update posts (including unpublishing)
+export async function PATCH(req: NextRequest): Promise<NextResponse> {
+  try {
+    // Check for authentication
+    const isAuthenticated = await checkAuth(req, true);
+    if (!isAuthenticated) {
+      return createCORSResponse({
+        success: false,
+        message: 'Unauthorized. You must be logged in to perform this action.',
+      }, 401);
+    }
+    
+    // Initialize Payload
+    const config = await getConfig()
+    const payload = await getPayload({
+      config,
+    });
+    
+    const url = new URL(req.url);
+    
+    // Extract post ID from path (e.g. /api/posts/123456)
+    const path = url.pathname;
+    const pathSegments = path.split('/');
+    const postId = pathSegments[pathSegments.length - 1];
+    
+    if (!postId || postId === 'posts') {
+      return createCORSResponse({
+        success: false,
+        message: 'No post ID provided for update.',
+      }, 400);
+    }
+    
+    // Parse the request body
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error('Error parsing request body:', e);
+      return createCORSResponse({
+        success: false,
+        message: 'Invalid request body.',
+      }, 400);
+    }
+    
+    // Perform the update
+    const updatedPost = await payload.update({
+      collection: 'posts',
+      id: postId,
+      data: body,
+    });
+    
+    return createCORSResponse({
+      success: true,
+      message: 'Post updated successfully.',
+      data: updatedPost,
+    }, 200);
+  } catch (error) {
+    console.error('Update Post API Error:', error);
+    return handleApiError(error, 'Có lỗi xảy ra khi cập nhật bài viết', 500);
   }
 }
