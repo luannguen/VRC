@@ -43,20 +43,8 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     alt = altFromResource || ''
 
     const cacheTag = resource.updatedAt
-    
-    // Ensure URL works whether it's relative or absolute
-    if (url) {
-      // If the URL already starts with http or / use it as-is, otherwise prepend baseURL
-      if (url.startsWith('http') || url.startsWith('/')) {
-        src = `${url}?${cacheTag}`
-      } else {
-        src = `${getClientSideURL(false)}${url}?${cacheTag}`
-      }
-    } else {
-      // Fallback if URL is missing
-      console.warn('Resource URL is missing in ImageMedia component')
-      src = placeholderBlur
-    }
+
+    src = `${getClientSideURL()}${url}?${cacheTag}`
   }
 
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)

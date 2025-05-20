@@ -14,14 +14,7 @@ export const getServerSideURL = () => {
   return url
 }
 
-export const getClientSideURL = (forceAbsolute = false) => {
-  // When in preview mode (or any SSR context), prefer to use relative URLs
-  // This avoids hydration errors when server and client URLs differ
-  // But always return absolute URL if forceAbsolute=true
-  if (!forceAbsolute && (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_IS_PREVIEW === 'true')) {
-    return ''  // Use relative URLs
-  }
-  
+export const getClientSideURL = () => {
   if (canUseDOM()) {
     const protocol = window.location.protocol
     const domain = window.location.hostname
@@ -34,5 +27,5 @@ export const getClientSideURL = (forceAbsolute = false) => {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   }
 
-  return process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+  return process.env.NEXT_PUBLIC_SERVER_URL || ''
 }

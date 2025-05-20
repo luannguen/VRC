@@ -10,9 +10,13 @@ import config from '@payload-config'
 import {
   handleOptionsRequest,
   createCORSResponse,
+<<<<<<< HEAD
   handleApiError,
   createCORSHeaders,
   checkAuth
+=======
+  handleApiError
+>>>>>>> parent of f7e78cb (fix preview post)
 } from '../_shared/cors'
 
 // Pre-flight request handler for CORS
@@ -28,6 +32,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       config,
     })
     
+<<<<<<< HEAD
     const url = new URL(req.url)
     
     // Parse query parameters
@@ -113,18 +118,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       depth: 1,
     })
     
+=======
+    // Implementation depends on the specific API
+    // For now, just return a simple response
+>>>>>>> parent of f7e78cb (fix preview post)
     return createCORSResponse({
       success: true,
-      data: posts.docs,
-      totalDocs: posts.totalDocs,
-      totalPages: posts.totalPages,
-      page: posts.page,
-      hasNextPage: posts.hasNextPage,
-      hasPrevPage: posts.hasPrevPage,
-    }, 200)
+      message: 'posts API endpoint is working!',
+    }, 200);
   } catch (error) {
-    console.error('Posts API Error:', error);
-    return handleApiError(error, 'Có lỗi xảy ra khi tải dữ liệu bài viết', 500);
+    console.error('API Error:', error);
+    return handleApiError(error, 'An error occurred', 500);
   }
 }
 

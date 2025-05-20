@@ -32,8 +32,8 @@ export const Products: CollectionConfig = {
         try {
           console.log(`Preparing to delete product with ID: ${id}`);
           
-          // Find products that reference this one - using both formats
-          const referencingProductsWithValue = await req.payload.find({
+          // Simpler approach: find products that reference this one and update them
+          const referencingProducts = await req.payload.find({
             collection: 'products',
             where: {
               'relatedProducts.value': {
@@ -42,83 +42,35 @@ export const Products: CollectionConfig = {
             },
           });
           
-          const referencingProductsWithoutValue = await req.payload.find({
-            collection: 'products',
-            where: {
-              relatedProducts: {
-                contains: id
-              }
-            },
-          });
-          
-          // Combine results from both queries and remove duplicates
-          const referencingProductIds = new Set([
-            ...referencingProductsWithValue.docs.map(p => p.id),
-            ...referencingProductsWithoutValue.docs.map(p => p.id)
-          ]);          // Remove the ID of the product being deleted
-          if (typeof id === 'string') {
-            referencingProductIds.delete(id);
-          } else if (id !== undefined) {
-            referencingProductIds.delete(String(id));
-          }
-          
-          const referencingProductsCount = referencingProductIds.size;
-          if (referencingProductsCount > 0) {
-            console.log(`Found ${referencingProductsCount.toString()} products referencing this product. Updating references...`);
+          if (referencingProducts.docs.length > 0) {
+            console.log(`Found ${referencingProducts.docs.length} products referencing this product. Updating references...`);
             
-            // Process each referencing product
-            for (const productId of referencingProductIds) {
-              try {
-                // Get product details
-                const product = await req.payload.findByID({
-                  collection: 'products',
-                  id: productId.toString()
+            for (const product of referencingProducts.docs) {
+              if (product.relatedProducts && Array.isArray(product.relatedProducts)) {
+                // Remove the reference to the product being deleted
+                const updatedRelatedProducts = product.relatedProducts.filter((relatedItem: any) => {
+                  if (typeof relatedItem === 'string') {
+                    return relatedItem !== id;
+                  }
+                  // Handle case where it's an object with value property
+                  if (relatedItem && typeof relatedItem === 'object' && 'value' in relatedItem) {
+                    return relatedItem.value !== id;
+                  }
+                  return true;
                 });
                 
-                if (product?.relatedProducts) {
-                  let updatedRelatedProducts;
-                  
-                  // Handle different formats of relatedProducts
-                  if (Array.isArray(product.relatedProducts)) {
-                    updatedRelatedProducts = product.relatedProducts.filter((relatedItem: any) => {
-                      // String case
-                      if (typeof relatedItem === 'string') {
-                        return relatedItem !== id;
-                      }
-                      
-                      // Object with value or id property
-                      if (relatedItem && typeof relatedItem === 'object') {
-                        if ('value' in relatedItem) {
-                          return relatedItem.value !== id;
-                        }
-                        if ('id' in relatedItem) {
-                          return relatedItem.id !== id;
-                        }
-                      }
-                      
-                      return true;
-                    });
-                  } else if (typeof product.relatedProducts === 'string') {
-                    // Single string case
-                    updatedRelatedProducts = product.relatedProducts === id ? [] : [product.relatedProducts];
-                  } else {
-                    // Other cases - keep as is
-                    updatedRelatedProducts = product.relatedProducts;
-                  }
-                  
-                  // Update product with filtered references
+                try {
                   await req.payload.update({
                     collection: 'products',
-                    id: productId.toString(),
+                    id: product.id,
                     data: {
                       relatedProducts: updatedRelatedProducts
                     }
                   });
-                  console.log(`Updated references in product: ${productId}`);
+                  console.log(`Updated references in product: ${product.id}`);
+                } catch (updateError) {
+                  console.error(`Failed to update references in product ${product.id}:`, updateError);
                 }
-              } catch (updateError) {
-                console.error(`Failed to update references in product ${productId}:`, updateError);
-                // Continue with next product despite errors
               }
             }
           }
@@ -126,7 +78,7 @@ export const Products: CollectionConfig = {
           return true; // Proceed with deletion
         } catch (error) {
           console.error(`Error in beforeDelete hook for product ${id}:`, error);
-          // Still allow deletion to avoid "stuck" deletion processes
+          // Return true to allow deletion to continue despite errors in the hook
           return true;
         }
       }
@@ -169,38 +121,27 @@ export const Products: CollectionConfig = {
       type: 'upload',
       label: 'Hình ảnh chính',
       relationTo: 'media',
-      required: true,      admin: {
-        description: 'Tải lên hình ảnh chính cho sản phẩm (bắt buộc). Nhấp vào nút "Tải lên" hoặc kéo thả hình ảnh vào đây.',
-      },
-      hooks: {
-        beforeChange: [
-          ({ value }) => {
-            if (!value) {
-              throw new Error('Vui lòng tải lên hình ảnh chính cho sản phẩm.');
-            }
-            return value;
-          }
-        ],
-      }
-    },    {
+      required: true,
+    },
+    {
       name: 'gallery',
       type: 'array',
       label: 'Thư viện ảnh',
       fields: [
         {
           name: 'image',
-          type: 'upload' as const,
+          type: 'upload',
           label: 'Hình ảnh',
-          relationTo: 'media' as const,
+          relationTo: 'media',
           required: true,
         },
         {
           name: 'caption',
-          type: 'text' as const,
+          type: 'text',
           label: 'Chú thích',
         },
       ],
-    },{
+    },    {
       name: 'category',
       type: 'relationship',
       label: 'Danh mục sản phẩm',
