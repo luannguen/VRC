@@ -6,5 +6,6 @@ import React from 'react'
 
 export const LivePreviewListener: React.FC = () => {
   const router = useRouter()
-  return <PayloadLivePreview refresh={router.refresh} serverURL={getClientSideURL()} />
+  // Always use absolute URL for live preview to prevent postMessage origin errors
+  return <PayloadLivePreview refresh={router.refresh} serverURL={getClientSideURL(true)} />
 }

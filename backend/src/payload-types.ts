@@ -927,6 +927,9 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Tải lên hình ảnh chính cho sản phẩm (bắt buộc). Nhấp vào nút "Tải lên" hoặc kéo thả hình ảnh vào đây.
+   */
   mainImage: string | Media;
   gallery?:
     | {

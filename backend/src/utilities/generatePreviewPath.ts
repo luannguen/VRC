@@ -12,11 +12,15 @@ type Props = {
 }
 
 export const generatePreviewPath = ({ collection, slug }: Props) => {
+  // Use dev-preview as fallback in development mode or empty string in production
+  const previewSecret = process.env.PREVIEW_SECRET || 
+    (process.env.NODE_ENV === 'development' ? 'dev-preview' : '');
+
   const encodedParams = new URLSearchParams({
     slug,
     collection,
     path: `${collectionPrefixMap[collection]}/${slug}`,
-    previewSecret: process.env.PREVIEW_SECRET || '',
+    previewSecret,
   })
 
   const url = `/next/preview?${encodedParams.toString()}`
