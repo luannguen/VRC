@@ -33,12 +33,11 @@ const Title: React.FC = () => <span>Dashboard</span>
 
 export const AdminBar: React.FC<{
   adminBarProps?: PayloadAdminBarProps
-}> = (props) => {
-  const { adminBarProps } = props || {}
+}> = (props) => {  const { adminBarProps } = props || {}
   const segments = useSelectedLayoutSegments()
   const [show, setShow] = useState(false)
   const collection = (
-    collectionLabels[segments?.[1] as keyof typeof collectionLabels] ? segments[1] : 'pages'
+    segments && collectionLabels[segments?.[1] as keyof typeof collectionLabels] ? segments[1] : 'pages'
   ) as keyof typeof collectionLabels
   const router = useRouter()
 
