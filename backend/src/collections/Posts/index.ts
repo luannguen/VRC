@@ -104,10 +104,10 @@ export const Posts: CollectionConfig<'posts'> = {
             },
           ],
           label: 'Content',
-        },
-        {
+        },        {
           fields: [
-            {              name: 'relatedPosts',
+            {
+              name: 'relatedPosts',
               type: 'relationship',
               admin: {
                 position: 'sidebar',
@@ -122,7 +122,8 @@ export const Posts: CollectionConfig<'posts'> = {
                   },
                 }
               },
-            },            {
+            },
+            {
               name: 'categories',
               type: 'relationship',
               admin: {
@@ -134,20 +135,23 @@ export const Posts: CollectionConfig<'posts'> = {
             },
           ],
           label: 'Meta',
-        },
-        {          name: 'meta',
+        },        {
+          name: 'meta',
           label: 'SEO',
-          fields: [            OverviewField({
+          fields: [
+            OverviewField({
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
               imagePath: 'meta.image',
-            }),            MetaTitleField({
+            }),
+            MetaTitleField({
               hasGenerateFn: true,
             }),
             MetaImageField({
               relationTo: 'media',
             }),
-            MetaDescriptionField({}),            PreviewField({
+            MetaDescriptionField({}),
+            PreviewField({
               hasGenerateFn: true,
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',

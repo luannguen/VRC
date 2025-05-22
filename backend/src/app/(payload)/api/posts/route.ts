@@ -750,3 +750,159 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+/**
+ * Create a new post
+ * 
+ * POST /api/posts
+ */
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  console.log('POST /api/posts: Request received');
+  const url = new URL(req.url); 
+  const referer = req.headers.get('referer') || '';
+  const isAdminRequest = referer.includes('/admin');
+  const headers = createCorsHeaders();
+
+  try {
+    const payload = await getPayload({ config });
+
+    const isAuthenticated = await checkAuth(req, !isAdminRequest);
+    if (!isAuthenticated && !isAdminRequest) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Xác thực thất bại. Vui lòng đăng nhập để thực hiện chức năng này.',
+          errorType: 'authentication',
+        },
+        { status: 401, headers },
+      );
+    }
+
+    if (isAdminRequest) {
+      console.log('Detected admin panel request for POST /api/posts');
+      let requestBody;
+      try {
+        requestBody = await req.json();
+      } catch (e) {
+        requestBody = null; 
+        console.log('Admin request: JSON parsing failed or body is empty/malformed.');
+      }
+
+      const isQueryOperation =
+        requestBody === null ||
+        (requestBody &&
+          (typeof requestBody.where !== 'undefined' ||
+            typeof requestBody.page !== 'undefined' ||
+            typeof requestBody.limit !== 'undefined' ||
+            typeof requestBody.sort !== 'undefined') &&
+          typeof requestBody.title === 'undefined'); // Assuming 'title' is mandatory for create
+
+      if (isQueryOperation) {
+        console.log('Admin POST request identified as a query operation for relationship options.');
+        const page = Number(requestBody?.page) || 1;
+        const limit = Number(requestBody?.limit) || 30; 
+        const sortField = typeof requestBody?.sort === 'string' ? requestBody.sort.trim() : 'createdAt';
+        const sortOrder = typeof requestBody?.order === 'string' && requestBody.order.toLowerCase() === 'desc' ? 'desc' : 'asc';
+        const sort = sortOrder === 'desc' ? `-${sortField.replace(/^-/, '')}` : sortField.replace(/^-/, '');
+        
+        let query: any = requestBody?.where || {};
+
+        if (typeof requestBody?.search === 'string' && requestBody.search.trim() !== '') {
+          query.or = query.or || [];
+          query.or.push({ title: { like: requestBody.search.trim() } });
+        }
+        
+        console.log('Admin query object for posts lookup:', JSON.stringify({ where: query, page, limit, sort }, null, 2));
+
+        try {
+          const results = await payload.find({
+            collection: 'posts',
+            where: query,
+            page,
+            limit,
+            depth: 1, 
+            sort,
+          });
+          return NextResponse.json(results, { status: 200, headers });
+        } catch (error) {
+          console.error('Admin POST (as query) Error:', error);
+          return NextResponse.json(
+            { errors: [{ message: `Error fetching posts for lookup: ${(error as Error).message}` }] },
+            { status: 500, headers },
+          );
+        }
+      } else { 
+        console.log('Admin POST request identified as a create operation.');
+        if (!requestBody) {
+          return NextResponse.json(
+            { errors: [{ message: 'Missing request body for post creation.', name: 'ValidationError' }] },
+            { status: 400, headers },
+          );
+        }
+        if (!requestBody.title) {
+          return NextResponse.json(
+            { errors: [{ message: 'Tiêu đề bài viết là bắt buộc.', name: 'ValidationError' }] },
+            { status: 400, headers },
+          );
+        }
+        
+        const newPost = await payload.create({
+          collection: 'posts',
+          data: requestBody,
+          context: { isFromAPI: true, isAdminRequest: true },
+        });
+        console.log(`Admin successfully created post with ID: ${newPost.id}`);
+        return NextResponse.json(newPost, { status: 201, headers });
+      }
+    } else { 
+      console.log('Client API POST request for post creation.');
+      const clientJsonPayload = await req.json().catch(() => {
+        throw new Error('Invalid JSON in request body'); 
+      });
+
+      if (!clientJsonPayload) {
+        return NextResponse.json(
+          { success: false, message: 'Dữ liệu bài viết không hợp lệ hoặc thiếu', errorType: 'validation' },
+          { status: 400, headers },
+        );
+      }
+      if (!clientJsonPayload.title) {
+        return NextResponse.json(
+          { success: false, message: 'Tiêu đề bài viết là bắt buộc', errorType: 'validation' },
+          { status: 400, headers },
+        );
+      }
+      
+      const newPost = await payload.create({
+        collection: 'posts',
+        data: clientJsonPayload,
+        context: { isFromAPI: true },
+      });
+      console.log(`Client API successfully created post with ID: ${newPost.id}`);
+      return NextResponse.json(
+        { success: true, message: 'Đã tạo bài viết thành công', data: newPost },
+        { status: 201, headers },
+      );
+    }
+  } catch (error: any) { 
+    console.error('Posts POST API General Error:', error);
+
+    if (error.message === 'Invalid JSON in request body' && !isAdminRequest) {
+        return NextResponse.json(
+            { success: false, message: 'Invalid JSON in request body', errorType: 'validation' },
+            { status: 400, headers }
+          );
+    }
+
+    if (isAdminRequest) {
+      return NextResponse.json(
+        { errors: [{ message: error.message || 'Lỗi máy chủ nội bộ khi xử lý yêu cầu POST.', name: 'ServerError' }] },
+        { status: (error as any).status || 500, headers },
+      );
+    }
+    return NextResponse.json(
+      { success: false, message: 'Lỗi máy chủ nội bộ', error: error.message, errorType: 'serverError' },
+      { status: 500, headers },
+    );
+  }
+}
