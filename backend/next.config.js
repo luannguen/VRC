@@ -29,8 +29,5 @@ const nextConfig = {
 }
 
 export default withPayload(nextConfig, { 
-  // Configuration for payload
-  devBundleServerPackages: false,
-  // Skip validation to avoid pages directory errors
-  skipPayloadValidation: true
+  // Configuration for payload without unrecognized keys
 })

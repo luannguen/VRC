@@ -193,8 +193,7 @@ export const GET = withCORS(async (req: NextRequest): Promise<NextResponse> => {
  * 
  * DELETE /api/posts?id=123456
  * DELETE /api/posts?ids=123456,789012
- * 
- * Requires authentication
+ * DELETE /api/posts?where[and][1][id][in][0]=123456 (format từ admin panel)
  */
 export async function DELETE(req: NextRequest): Promise<NextResponse> {
   try {
@@ -210,8 +209,8 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       console.log('Detected admin panel request for post deletion');
     }
     
-    // Require authentication with bypass for admin
-    const isAuthenticated = await checkAuth(req, !isAdminRequest) // Only strictly require auth for non-admin requests
+    // Yêu cầu xác thực với bypass cho admin
+    const isAuthenticated = await checkAuth(req, !isAdminRequest) // Chỉ yêu cầu nghiêm ngặt xác thực cho các yêu cầu không từ admin
     if (!isAuthenticated && !isAdminRequest) {
       const headers = createCorsHeaders()
       return NextResponse.json(
@@ -225,15 +224,21 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
           headers,
         }
       )
-    }    // Initialize Payload
+    }
+    
+    // Khởi tạo Payload
     const payload = await getPayload({
       config,
     })
 
-    // Extract post ID using the helper function
+    // Trích xuất ID post sử dụng hàm helper đã được cải thiện
     const { postId, postIds } = await extractPostIds(req);
+    console.log('Extracted postId:', postId);
+    console.log('Extracted postIds:', postIds);
 
-    const headers = createCorsHeaders()    // Handle bulk delete with multiple IDs
+    const headers = createCorsHeaders()
+    
+    // Xử lý xóa hàng loạt với nhiều ID
     if (postIds && postIds.length > 0) {
       const idsArray = postIds;
       
@@ -251,48 +256,46 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
         )
       }
       
-      // Delete multiple posts
+      // Xóa nhiều bài viết
       const results = [];
       const errors = [];
       
-      // To avoid conflicts in references, first collect information about posts to delete
-      const postsToDelete = [];
+      // Bỏ qua việc kiểm tra post tồn tại trước khi xóa
+      // Thay vào đó, sử dụng try-catch để xử lý lỗi cho từng ID riêng lẻ
       for (const id of idsArray) {
         try {
-          const post = await payload.findByID({
+          // Cố gắng xóa post dù nó có tồn tại hay không
+          const deletedPost = await payload.delete({
             collection: 'posts',
             id,
-            depth: 0,
-          }).catch(() => null);
-          
-          if (post) {
-            postsToDelete.push({ id, title: post.title });
-          }
-        } catch (err) {
-          console.error(`Error retrieving post with ID ${id} before deletion:`, err);
-          errors.push({ id, error: 'Không thể tìm thấy bài viết này' });
-        }
-      }
-      
-      // Then delete each post
-      for (const post of postsToDelete) {
-        try {
-          await payload.delete({
-            collection: 'posts',
-            id: post.id,
+            // Đảm bảo hooks afterDelete được kích hoạt đúng cách
+            context: {
+              disableRevalidate: false, // Đảm bảo revalidation xảy ra
+              isFromAPI: true, // Đánh dấu rằng request đến từ API tùy chỉnh
+            }
+          }).catch(error => {
+            // Xử lý lỗi NotFound một cách đặc biệt - coi là xóa thành công
+            if (error?.status === 404) {
+              console.log(`Post with ID ${id} already not exists, considering deletion successful`);
+              return { id, success: true, status: 'not_found_but_success' };
+            }
+            throw error; // Ném lại các lỗi khác
           });
-          results.push({ id: post.id, title: post.title, success: true });
+          
+          // Ghi log thành công
+          console.log(`Successfully deleted post with ID: ${id}`);
+          results.push({ id, success: true });
         } catch (err: any) {
+          console.error(`Error deleting post ${id}:`, err);
           errors.push({ 
-            id: post.id, 
-            title: post.title, 
+            id, 
             error: err.message || 'Lỗi không xác định',
             errorDetail: err.toString() 
           });
         }
       }
       
-      // Create more detailed status message about deletion results
+      // Tạo thông báo trạng thái chi tiết hơn về kết quả xóa
       let statusMessage;
       if (results.length === 0) {
         statusMessage = `Không thể xóa bất kỳ bài viết nào. ${errors.length} lỗi xảy ra.`;
@@ -302,6 +305,36 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
         statusMessage = `Đã xóa ${results.length}/${idsArray.length} bài viết. ${errors.length} lỗi xảy ra.`;
       }
 
+      // Kiểm tra nếu yêu cầu đến từ admin panel và định dạng phản hồi phù hợp
+      if (isAdminRequest) {
+        // Đảm bảo định dạng phản hồi tuân thủ cấu trúc mà Payload CMS mong đợi
+        if (errors.length === 0) {
+          // Trả về định dạng thành công của Payload CMS 
+          return NextResponse.json({
+            docs: results.map(result => ({ id: result.id })),
+            errors: [],
+            message: statusMessage,
+            // Các trường khác Payload mong đợi
+            status: 200,
+          }, {
+            status: 200,
+            headers,
+          });
+        } else {
+          // Nếu có lỗi, tuân thủ định dạng lỗi của Payload
+          return NextResponse.json({
+            errors: errors.map(err => ({
+              message: err.error || 'Lỗi khi xóa bài viết',
+              name: 'DeleteError',
+            })),
+          }, {
+            status: 400,
+            headers
+          });
+        }
+      }
+
+      // Định dạng API tiêu chuẩn cho các yêu cầu không từ admin
       return NextResponse.json(
         {
           success: errors.length === 0,
@@ -310,13 +343,13 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
           errors: errors.length > 0 ? errors : undefined,
         },
         {
-          status: errors.length === 0 ? 200 : 207, // Use 207 Multi-Status for partial success
+          status: errors.length === 0 ? 200 : 207, // Sử dụng 207 Multi-Status cho thành công một phần
           headers,
         }
       )
     }
 
-    // Handle single delete
+    // Xử lý xóa đơn lẻ
     if (!postId) {
       return NextResponse.json(
         {
@@ -332,72 +365,69 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     }
     
     try {
-      // Find the post first (to log what's being deleted)
-      const post = await payload.findByID({
-        collection: 'posts',
-        id: postId,
-      }).catch(() => null);
-      
-      if (!post) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Không tìm thấy bài viết với ID: ${postId}`,
-            errorType: 'notFound',
-          },
-          {
-            status: 404,
-            headers,
+      // Bỏ qua việc kiểm tra post tồn tại trước khi xóa
+      // Thay vào đó, cố gắng xóa trực tiếp và xử lý lỗi nếu có
+      try {
+        const deletedPost = await payload.delete({
+          collection: 'posts',
+          id: postId,
+          // Đảm bảo hooks afterDelete được kích hoạt đúng cách
+          context: {
+            disableRevalidate: false, // Đảm bảo revalidation xảy ra
+            isFromAPI: true, // Đánh dấu rằng request đến từ API tùy chỉnh
           }
-        );
-      }
-        // Delete the post
-      const deletedPost = await payload.delete({
-        collection: 'posts',
-        id: postId,
-      });
+        }).catch(error => {
+          // Xử lý lỗi NotFound một cách đặc biệt - coi là xóa thành công
+          if (error?.status === 404) {
+            console.log(`Post with ID ${postId} already not exists, considering deletion successful`);
+            return { id: postId, success: true, status: 'not_found_but_success' };
+          }
+          throw error; // Ném lại các lỗi khác
+        });
 
-      // Log successful deletion
-      console.log(`Successfully deleted post: ${post?.title || postId} (ID: ${postId})`);
+        // Ghi log xóa thành công
+        console.log(`Successfully deleted post with ID: ${postId}`);
 
-      // Check if request is from admin panel and format response accordingly
-      const referer = req.headers.get('referer') || '';
-      const isAdminRequest = referer.includes('/admin');
-      
-      if (isAdminRequest) {
-        // Format response similar to Payload CMS expected structure for admin
-        console.log('Returning admin-compatible response format');
+        // Kiểm tra nếu yêu cầu từ admin panel và định dạng phản hồi phù hợp
+        if (isAdminRequest) {
+          // Định dạng phản hồi tương tự cấu trúc mong đợi của Payload CMS cho admin
+          console.log('Returning admin-compatible response format');
+          return NextResponse.json(
+            { 
+              ...deletedPost,
+              message: `Đã xóa bài viết thành công với ID: ${postId}`
+            },
+            {
+              status: 200,
+              headers,
+            }
+          );
+        }
+        
+        // Phản hồi API tiêu chuẩn cho các yêu cầu không từ admin
         return NextResponse.json(
-          deletedPost,
+          {
+            success: true,
+            message: `Đã xóa bài viết thành công với ID: ${postId}`,
+            data: { id: postId }
+          },
           {
             status: 200,
             headers,
           }
         );
+      } catch (err: any) {
+        // Xử lý lỗi khi xóa
+        throw err;
       }
-      
-      // Standard API response for non-admin requests
-      return NextResponse.json(
-        {
-          success: true,
-          message: `Đã xóa bài viết thành công: ${post?.title || postId}`,
-          data: { id: postId, title: post?.title }
-        },
-        {
-          status: 200,
-          headers,
-        }
-      );    } catch (err: any) {
+    } catch (err: any) {
       console.error(`Error deleting post ${postId}:`, err);
       
-      // Check if request is from admin panel and format response accordingly
-      const referer = req.headers.get('referer') || '';
-      const isAdminRequest = referer.includes('/admin');
-      
+      // Kiểm tra nếu yêu cầu từ admin panel và định dạng phản hồi lỗi phù hợp
       if (isAdminRequest) {
-        // Format admin compatible error
+        // Định dạng lỗi tương thích với admin
         console.log('Returning admin-compatible error format');
-        // Admin panel typically expects this structure
+        // Admin panel thường mong đợi cấu trúc này
         return NextResponse.json(
           {
             errors: [
@@ -408,13 +438,13 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
             ],
           },
           {
-            status: 400, // Admin UI tends to handle 400 better than 500
+            status: 400, // Admin UI có xu hướng xử lý 400 tốt hơn 500
             headers,
           }
         );
       }
       
-      // Standard API error response
+      // Phản hồi lỗi API tiêu chuẩn
       return NextResponse.json(
         {
           success: false,
@@ -428,16 +458,17 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
           headers,
         }
       );
-    }  } catch (error) {
+    }
+  } catch (error) {
     console.error('Posts DELETE API Error:', error);
     const headers = createCorsHeaders();
     
-    // Check if request is from admin panel
+    // Kiểm tra nếu yêu cầu từ admin panel
     const referer = req.headers.get('referer') || '';
     const isAdminRequest = referer.includes('/admin');
     
     if (isAdminRequest) {
-      // Format admin compatible error
+      // Định dạng lỗi tương thích với admin
       console.log('Returning admin-compatible general error format');
       return NextResponse.json(
         {

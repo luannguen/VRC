@@ -1,0 +1,15 @@
+ {
+  "name": "vrc",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev:backend",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd vrcfrontend && npm run dev",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "concurrently": "^8.2.2"
+  }
+}
