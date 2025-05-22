@@ -258,8 +258,14 @@ export interface Post {
     };
     [k: string]: unknown;
   };
+  /**
+   * Chọn các bài viết liên quan
+   */
   relatedPosts?: (string | Post)[] | null;
-  categories?: (string | Category)[] | null;
+  /**
+   * Chọn danh mục cho bài viết
+   */
+  categories?: (string | NewsCategory)[] | null;
   meta?: {
     title?: string | null;
     /**
@@ -375,32 +381,17 @@ export interface Media {
   };
 }
 /**
- * Quản lý tất cả các danh mục và thẻ trong hệ thống.
+ * Quản lý danh mục phân loại tin tức và bài viết.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
+ * via the `definition` "news-categories".
  */
-export interface Category {
+export interface NewsCategory {
   id: string;
-  /**
-   * Nhập tên của danh mục hoặc thẻ
-   */
   title: string;
-  /**
-   * Chọn loại danh mục hoặc thẻ phù hợp với mục đích sử dụng.
-   */
-  type: 'category' | 'tag' | 'news_category' | 'service_category' | 'event_category' | 'project_category';
+  description?: string | null;
   slug?: string | null;
   slugLock?: boolean | null;
-  parent?: (string | null) | Category;
-  breadcrumbs?:
-    | {
-        doc?: (string | null) | Category;
-        url?: string | null;
-        label?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -563,6 +554,36 @@ export interface ArchiveBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'archive';
+}
+/**
+ * Quản lý tất cả các danh mục và thẻ trong hệ thống.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: string;
+  /**
+   * Nhập tên của danh mục hoặc thẻ
+   */
+  title: string;
+  /**
+   * Chọn loại danh mục hoặc thẻ phù hợp với mục đích sử dụng.
+   */
+  type: 'category' | 'tag' | 'news_category' | 'service_category' | 'event_category' | 'project_category';
+  slug?: string | null;
+  slugLock?: boolean | null;
+  parent?: (string | null) | Category;
+  breadcrumbs?:
+    | {
+        doc?: (string | null) | Category;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -793,21 +814,6 @@ export interface ProductCategory {
    * Số thấp hơn sẽ hiển thị trước
    */
   orderNumber?: number | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Quản lý danh mục phân loại tin tức và bài viết.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "news-categories".
- */
-export interface NewsCategory {
-  id: string;
-  title: string;
-  description?: string | null;
   slug?: string | null;
   slugLock?: boolean | null;
   updatedAt: string;

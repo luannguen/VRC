@@ -107,61 +107,48 @@ export const Posts: CollectionConfig<'posts'> = {
         },
         {
           fields: [
-            {
-              name: 'relatedPosts',
+            {              name: 'relatedPosts',
               type: 'relationship',
               admin: {
                 position: 'sidebar',
-              },
-              filterOptions: ({ id }) => {
-                return {
-                  id: {
-                    not_in: [id],
-                  },
-                }
+                description: 'Chọn các bài viết liên quan',
               },
               hasMany: true,
               relationTo: 'posts',
-            },
-            {
+              filterOptions: ({ id }) => {
+                return {
+                  id: {
+                    not_in: [id || ''],
+                  },
+                }
+              },
+            },            {
               name: 'categories',
               type: 'relationship',
               admin: {
                 position: 'sidebar',
+                description: 'Chọn danh mục cho bài viết',
               },
               hasMany: true,
-              relationTo: 'categories',
-              filterOptions: ({ relationTo }) => {
-                return {
-                  type: { equals: 'news_category' },
-                };
-              },
+              relationTo: 'news-categories',
             },
           ],
           label: 'Meta',
         },
-        {
-          name: 'meta',
+        {          name: 'meta',
           label: 'SEO',
-          fields: [
-            OverviewField({
+          fields: [            OverviewField({
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
               imagePath: 'meta.image',
-            }),
-            MetaTitleField({
+            }),            MetaTitleField({
               hasGenerateFn: true,
             }),
             MetaImageField({
               relationTo: 'media',
             }),
-
-            MetaDescriptionField({}),
-            PreviewField({
-              // if the `generateUrl` function is configured
+            MetaDescriptionField({}),            PreviewField({
               hasGenerateFn: true,
-
-              // field paths to match the target field for data
               titlePath: 'meta.title',
               descriptionPath: 'meta.description',
             }),

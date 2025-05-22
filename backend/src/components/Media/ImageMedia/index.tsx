@@ -36,15 +36,23 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
   let src: StaticImageData | string = srcFromProps || ''
 
   if (!src && resource && typeof resource === 'object') {
-    const { alt: altFromResource, height: fullHeight, url, width: fullWidth } = resource
+    // Truy cập an toàn vào các thuộc tính của resource
+    width = resource.width || undefined
+    height = resource.height || undefined
+    alt = resource.alt || altFromProps || ''
 
-    width = fullWidth!
-    height = fullHeight!
-    alt = altFromResource || ''
-
+    // Xử lý chuỗi cập nhật an toàn - nếu không có updatedAt thì không thêm cacheTag
     const cacheTag = resource.updatedAt
+      ? `updated=${encodeURIComponent(resource.updatedAt)}`
+      : ''
 
-    src = `${getClientSideURL()}${url}?${cacheTag}`
+    // Đảm bảo URL luôn là đường dẫn tương đối bắt đầu bằng /
+    // Điều này ngăn chặn lỗi hydration giữa server và client
+    const mediaUrl = resource.url && (String(resource.url).startsWith('/')
+      ? resource.url
+      : `/${resource.url}`)
+
+    src = mediaUrl ? `${mediaUrl}${cacheTag ? `?${cacheTag}` : ''}` : ''
   }
 
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)

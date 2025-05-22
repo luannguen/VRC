@@ -24,7 +24,8 @@ export const VideoMedia: React.FC<MediaProps> = (props) => {
   }, [])
 
   if (resource && typeof resource === 'object') {
-    const { filename } = resource
+    // Đảm bảo chỉ truy cập vào các thuộc tính an toàn
+    const filename = resource.filename || ''
 
     return (
       <video

@@ -1,12 +1,14 @@
 /**
  * Returns true if code is running in a browser environment
- * Modified to avoid hydration issues when used during rendering
+ * Configured to be safe for use in components during rendering 
+ * to avoid hydration mismatches
  */
-const canUseDOM = () => {
-  // We define this as a function that returns a boolean
-  // instead of a direct boolean value to avoid evaluation during module load
-  return typeof window !== 'undefined' && 
-         typeof window.document !== 'undefined' && 
+const canUseDOM = (): boolean => {
+  // Phần này chỉ được thực thi khi component đã được mount trên client
+  // Do đó tránh được vấn đề hydration mismatch giữa server và client
+  if (typeof window === 'undefined') return false
+  
+  return typeof window.document !== 'undefined' && 
          typeof window.document.createElement !== 'undefined'
 }
 
