@@ -2,6 +2,7 @@ import { CollectionConfig } from 'payload';
 import { authenticated } from '../access/authenticated';
 import { authenticatedOrPublished } from '../access/authenticatedOrPublished';
 import { slugField } from '../fields/slug';
+import { productHooks } from './Products/hooks';
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -81,8 +82,7 @@ export const Products: CollectionConfig = {
           // Return true to allow deletion to continue despite errors in the hook
           return true;
         }
-      }
-    ],
+      }    ],
     afterDelete: [
       async ({ req, id, doc }) => {
         try {
@@ -92,7 +92,9 @@ export const Products: CollectionConfig = {
           console.error(`Error in afterDelete hook for product ${id}:`, error);
           return doc;
         }
-      }
+      },
+      // Add the revalidation hook to ensure the admin UI refreshes properly
+      ...productHooks.afterDelete
     ]
   },
   fields: [
