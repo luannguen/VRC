@@ -85,15 +85,14 @@ export async function handleUpdate(req: NextRequest): Promise<NextResponse> {
         for (const [key, value] of formData.entries()) {
           // Skip _payload since we already processed it
           if (key === '_payload') continue;
-          
-          if (value instanceof File) {
+            if (value instanceof File) {
             body[key] = value;
           } else {
             // For relationship fields that might be JSON strings
             if (key === 'categories' || key === 'relatedProducts' || key === 'related_products') {
               try {
                 body[key] = JSON.parse(value.toString());
-              } catch (e) {
+              } catch (_e) {
                 body[key] = value;
               }
             } else {
@@ -104,13 +103,12 @@ export async function handleUpdate(req: NextRequest): Promise<NextResponse> {
       } else if (contentType.includes('application/x-www-form-urlencoded')) {
         // Handle form-urlencoded data
         const formData = await req.formData();
-        
-        for (const [key, value] of formData.entries()) {
+          for (const [key, value] of formData.entries()) {
           // For relationship fields that might be JSON strings
           if (key === 'categories' || key === 'relatedProducts' || key === 'related_products') {
             try {
               body[key] = JSON.parse(value.toString());
-            } catch (e) {
+            } catch (_e) {
               body[key] = value;
             }
           } else {
@@ -121,19 +119,17 @@ export async function handleUpdate(req: NextRequest): Promise<NextResponse> {
         // Default to try both formData and JSON
         try {
           const formData = await req.formData();
-          for (const [key, value] of formData.entries()) {
-            if (key === '_payload') {
+          for (const [key, value] of formData.entries()) {            if (key === '_payload') {
               try {
                 const payloadData = JSON.parse(value.toString());
                 body = { ...body, ...payloadData };
-              } catch (e) {
+              } catch (_e) {
                 body[key] = value;
               }
             } else {
               body[key] = value;
             }
-          }
-        } catch (formError) {
+          }        } catch (_formError) {
           // Fallback to JSON if formData fails
           body = await req.json();
         }

@@ -22,11 +22,10 @@ export const POST = withCORS(async (req: NextRequest): Promise<NextResponse> => 
       return createCORSResponse({
         success: false,
         message: 'Missing required fields: sourcePostId and clickedPostId'
-      }, 400);
-    }
+      }, 400);    }
 
     // Initialize Payload
-    const payload = await getPayload({ config });
+    const _payload = await getPayload({ config });
 
     // Log the click event
     // For now, just log to console - in a real implementation you'd store this in a database

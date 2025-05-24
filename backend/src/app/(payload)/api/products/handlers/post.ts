@@ -11,6 +11,22 @@ import { formatAdminResponse, formatApiResponse, formatAdminErrorResponse, forma
 export async function handlePOST(req: NextRequest): Promise<NextResponse> {
   console.log('POST /api/products: Request received');
   try {
+    // Check for HTTP method override (admin interface uses this for GET requests via POST)
+    const methodOverride = req.headers.get('x-http-method-override');
+    console.log('POST /api/products: Method override header:', methodOverride);
+    
+    // If this is actually a GET request disguised as POST, delegate to GET handler
+    if (methodOverride === 'GET') {
+      console.log('POST /api/products: Delegating to GET handler due to method override');
+      
+      // Check if this is an admin request before delegating
+      const adminRequest = isAdminRequest(req);
+      console.log('POST /api/products: Method override from admin request:', adminRequest);
+      
+      const { handleGET } = await import('./get');
+      return handleGET(req);
+    }
+    
     // Log request details for debugging
     console.log('POST /api/products: Headers:', JSON.stringify(Object.fromEntries(req.headers.entries())));
     
@@ -78,11 +94,10 @@ export async function handlePOST(req: NextRequest): Promise<NextResponse> {
           // Special handling for file uploads
           if (value instanceof File) {
             productData[key] = value;
-          } else if (key === 'categories' || key === 'relatedProducts' || key === 'related_products') {
-            try {
+          } else if (key === 'categories' || key === 'relatedProducts' || key === 'related_products') {            try {
               // Parse JSON strings for relationship fields
               productData[key] = JSON.parse(value.toString());
-            } catch (e) {
+            } catch (_e) {
               productData[key] = value;
             }
           } else {
@@ -92,14 +107,13 @@ export async function handlePOST(req: NextRequest): Promise<NextResponse> {
       } else if (contentType.includes('application/x-www-form-urlencoded')) {
         // Handle x-www-form-urlencoded, common in form submissions
         const formData = await req.formData();
-        
-        // Convert FormData to regular object
+          // Convert FormData to regular object
         for (const [key, value] of formData.entries()) {
           // Handle special fields requiring JSON parsing
           if (key === 'categories' || key === 'relatedProducts' || key === 'related_products') {
             try {
               productData[key] = JSON.parse(value.toString());
-            } catch (e) {
+            } catch (_e) {
               productData[key] = value;
             }
           } else {
@@ -112,12 +126,10 @@ export async function handlePOST(req: NextRequest): Promise<NextResponse> {
           const formData = await req.formData();
           for (const [key, value] of formData.entries()) {
             productData[key] = value;
-          }
-        } catch (formError) {
+          }        } catch (_formError) {
           try {
-            productData = await req.json();
-          } catch (jsonError) {
-            console.error('POST /api/products: Failed to parse request body as formData or JSON:', jsonError);
+            productData = await req.json();} catch (_jsonError) {
+            console.error('POST /api/products: Failed to parse request body as formData or JSON:', _jsonError);
             return adminRequest 
               ? formatAdminErrorResponse('Định dạng dữ liệu không hợp lệ', 400)
               : formatApiErrorResponse(
@@ -164,6 +176,74 @@ export async function handlePOST(req: NextRequest): Promise<NextResponse> {
     } else if (!productData.name && productData.title) {
       productData.name = productData.title;
       console.log('POST /api/products: Set name to title:', productData.name);
+    }
+    
+    // Handle related products field - ensure it's properly formatted
+    if (productData.relatedProducts !== undefined) {
+      if (productData.relatedProducts === null || productData.relatedProducts === 0 || productData.relatedProducts === '0') {
+        // If relatedProducts is null, 0 or '0', set it to an empty array
+        productData.relatedProducts = [];
+        console.log('POST /api/products: relatedProducts was null/0, setting to empty array');
+      } else if (!Array.isArray(productData.relatedProducts)) {
+        // If it's not an array (but not null/undefined), try to format it properly
+        try {
+          if (typeof productData.relatedProducts === 'string') {
+            // Try to parse JSON if it's a string
+            if (productData.relatedProducts.trim() === '') {
+              productData.relatedProducts = [];
+            } else if (productData.relatedProducts.startsWith('[')) {
+              productData.relatedProducts = JSON.parse(productData.relatedProducts);
+            } else {
+              // Single ID as string
+              productData.relatedProducts = [productData.relatedProducts];
+            }
+          } else if (typeof productData.relatedProducts === 'object') {
+            // Handle single object case
+            productData.relatedProducts = [productData.relatedProducts];
+          } else {
+            // Any other case, set to empty
+            productData.relatedProducts = [];
+          }
+          console.log('POST /api/products: Formatted relatedProducts:', JSON.stringify(productData.relatedProducts));
+        } catch (error) {
+          console.error('POST /api/products: Error formatting relatedProducts, setting to empty array:', error);
+          productData.relatedProducts = [];
+        }
+      }
+    }
+    
+    // Apply the same formatting to categories if present
+    if (productData.categories !== undefined) {
+      if (productData.categories === null || productData.categories === 0 || productData.categories === '0') {
+        // If categories is null, 0 or '0', set it to an empty array
+        productData.categories = [];
+        console.log('POST /api/products: categories was null/0, setting to empty array');
+      } else if (!Array.isArray(productData.categories)) {
+        // If it's not an array (but not null/undefined), try to format it properly
+        try {
+          if (typeof productData.categories === 'string') {
+            // Try to parse JSON if it's a string
+            if (productData.categories.trim() === '') {
+              productData.categories = [];
+            } else if (productData.categories.startsWith('[')) {
+              productData.categories = JSON.parse(productData.categories);
+            } else {
+              // Single ID as string
+              productData.categories = [productData.categories];
+            }
+          } else if (typeof productData.categories === 'object') {
+            // Handle single object case
+            productData.categories = [productData.categories];
+          } else {
+            // Any other case, set to empty
+            productData.categories = [];
+          }
+          console.log('POST /api/products: Formatted categories:', JSON.stringify(productData.categories));
+        } catch (error) {
+          console.error('POST /api/products: Error formatting categories, setting to empty array:', error);
+          productData.categories = [];
+        }
+      }
     }
     
     // Initialize Payload CMS

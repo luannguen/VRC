@@ -82,9 +82,8 @@ export const Products: CollectionConfig = {
           // Return true to allow deletion to continue despite errors in the hook
           return true;
         }
-      }    ],
-    afterDelete: [
-      async ({ req, id, doc }) => {
+      }    ],    afterDelete: [
+      async ({ req: _req, id, doc }) => {
         try {
           console.log(`Product deleted successfully: ${id}`);
           return doc;
@@ -159,7 +158,7 @@ export const Products: CollectionConfig = {
       label: 'Thẻ/Tags',
       relationTo: 'categories',
       hasMany: true,
-      filterOptions: ({ relationTo }) => {
+      filterOptions: ({ relationTo: _relationTo }) => {
         return {
           type: { equals: 'tag' },
         };
@@ -178,15 +177,23 @@ export const Products: CollectionConfig = {
         position: 'sidebar',
         description: 'Đánh dấu là sản phẩm nổi bật để hiện trên trang chủ',
       },
-    },
-    {
+    },    {
       name: 'relatedProducts',
       type: 'relationship',
       label: 'Sản phẩm liên quan',
-      relationTo: ['products'],
+      relationTo: 'products',
       hasMany: true,
+      filterOptions: ({ id }) => {
+        return {
+          id: {
+            not_in: id ? [id] : [],
+          },
+        };
+      },
       admin: {
         description: 'Chọn các sản phẩm liên quan để hiển thị phía dưới',
+        allowCreate: false,
+        isSortable: true,
       },
     },
     {

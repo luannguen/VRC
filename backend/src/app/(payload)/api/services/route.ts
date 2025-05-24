@@ -6,7 +6,6 @@ import config from '@payload-config'
 
 import {
   handleOptionsRequest,
-  createCORSResponse,
   handleApiError,
   createCORSHeaders
 } from '../_shared/cors';
@@ -73,13 +72,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         depth: 2, // Populate relationships 2 levels deep
       });
-      
-      if (service.docs.length === 0) {
-        const headers = createCORSHeaders();
+        if (service.docs.length === 0) {
+        const _headers = createCORSHeaders();
         return handleApiError(new Error('Service not found'), 'Không tìm thấy dịch vụ.', 404);
-      }
-
-      const headers = createCORSHeaders()
+      }      const _headers = createCORSHeaders()
       return NextResponse.json(
         {
           success: true,
@@ -87,8 +83,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         {
           status: 200,
-          headers,
-        }      )
+          headers: _headers,
+        }
+      )
     }
     
     // Otherwise fetch a list of services
@@ -116,10 +113,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         status: 200,
         headers,
       }
-    )
-  } catch (error) {
+    )  } catch (error) {
     console.error('Services API Error:', error)
-    const headers = createCORSHeaders()
+    const _headers = createCORSHeaders()
     return handleApiError(error, 'Có lỗi xảy ra khi lấy dữ liệu dịch vụ.', 500)
   }
 }

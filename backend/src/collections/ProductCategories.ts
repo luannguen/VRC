@@ -126,10 +126,9 @@ export const ProductCategories: CollectionConfig = {
                 collection: 'product-categories',
                 id: currentParent,
               });
-              
-              // Sử dụng any để tránh lỗi type do thiếu các type definitions
+                // Sử dụng any để tránh lỗi type do thiếu các type definitions
               currentParent = (parentDoc as any).parent;
-            } catch (error) {
+            } catch (_error) {
               currentParent = null;
             }
           }

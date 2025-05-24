@@ -1,7 +1,7 @@
 import { Payload } from 'payload';
 import fs from 'fs';
 import path from 'path';
-import { PATHS, getAbsolutePath } from './pathConfig';
+import { PATHS } from './pathConfig';
 import { uploadFileWithCache } from './fileUtils';
 import { progressManager } from './progressUtils';
 
@@ -37,7 +37,7 @@ export const technologyImageMap: Record<string, string> = {
 /**
  * Cache of uploaded media IDs to prevent duplicate uploads
  */
-const mediaCache: Record<string, string> = {};
+const _mediaCache: Record<string, string> = {};
 
 /**
  * Upload an image from the frontend to the backend media collection
@@ -65,7 +65,7 @@ export async function uploadMediaFromFrontend(
 /**
  * Get MIME type for a file extension
  */
-function getMimeType(extension: string): string {
+function _getMimeType(extension: string): string {
   const types: Record<string, string> = {
     'jpg': 'image/jpeg',
     'jpeg': 'image/jpeg',

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSideURL } from './getURL'
 import { 
-  verifyJwt, 
-  extractToken,
-  EnhancedJwtPayload, 
   getUserFromRequest, 
-  JwtErrorType 
 } from '../../../../utilities/verifyJwt'
 import logger from '../../../../utilities/logger'
 import { verifyCSRFToken } from '../../../../utilities/csrf'

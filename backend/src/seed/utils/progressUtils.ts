@@ -11,7 +11,7 @@ const isSupportedEnvironment = () => {
   try {
     // Trong một số môi trường như Next.js, process.stdout có thể bị ghi đè
     return process.stdout && typeof process.stdout.cursorTo === 'function';
-  } catch (e) {
+  } catch (_e) {
     return false;
   }
 };
@@ -65,9 +65,8 @@ class ProgressManager {
         barIncompleteChar: '\u2591',
         hideCursor: true
       }, cliProgress.Presets.shades_classic);
-      
-      this.progressBar.start(total, 0);
-    } catch (error) {
+        this.progressBar.start(total, 0);
+    } catch (_error) {
       // Fallback nếu có lỗi với thanh tiến trình
       console.log(`🚀 ${label} - Bắt đầu (${total} items)`);
       this.isSupported = false;
@@ -87,9 +86,8 @@ class ProgressManager {
       return;
     }
     
-    try {
-      this.progressBar.update(this.currentItems);
-    } catch (error) {
+    try {      this.progressBar.update(this.currentItems);
+    } catch (_error) {
       // Fallback nếu có lỗi
       console.log(`⏩ ${this.activeLabel} - Tiến độ: ${this.currentItems}/${this.totalItems}`);
       this.isSupported = false;
@@ -108,8 +106,7 @@ class ProgressManager {
     try {
       this.progressBar.update(this.totalItems);
       this.progressBar.stop();
-      this.progressBar = null;
-    } catch (error) {
+      this.progressBar = null;    } catch (_error) {
       // Fallback nếu có lỗi
       console.log(`✅ ${this.activeLabel} - Hoàn thành! (${this.totalItems}/${this.totalItems})`);
     }

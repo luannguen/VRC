@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import {
-  createCORSHeaders,
   createCORSResponse,
   handleOptionsRequest,
   handleApiError,

@@ -1,6 +1,6 @@
 import config from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
-import { createCORSHeaders, createCorsHeaders } from '../../_shared/cors'
+import { createCorsHeaders } from '../../_shared/cors'
 import { getPayload } from 'payload'
 
 /**
@@ -10,13 +10,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     console.log('Custom logout handler called');
     
-    const payload = await getPayload({
+    const _payload = await getPayload({
       config,
     });
     
     // Get the token either from header or cookie
-    const authHeader = req.headers.get('authorization');
-    const cookies = req.cookies;
+    const _authHeader = req.headers.get('authorization');
+    const _cookies = req.cookies;
       // Clear the payload-token cookie regardless
     const headers = createCorsHeaders();
     headers.append('Set-Cookie', 'payload-token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');

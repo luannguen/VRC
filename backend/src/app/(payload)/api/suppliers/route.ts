@@ -3,7 +3,6 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import {
   handleOptionsRequest,
-  createCORSResponse,
   createCORSHeaders,
   handleApiError
 } from '../_shared/cors';
@@ -112,9 +111,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         headers,
       }
     )
-  } catch (error) {
-    console.error('Suppliers API Error:', error)
-    const headers = createCORSHeaders()
+  } catch (error) {    console.error('Suppliers API Error:', error)
+    const _headers = createCORSHeaders()
     return handleApiError(error, 'Có lỗi xảy ra khi lấy dữ liệu nhà cung cấp.', 500)
   }
 }

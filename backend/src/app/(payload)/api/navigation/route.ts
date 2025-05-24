@@ -4,8 +4,7 @@ import config from '@payload-config'
 import {
   handleOptionsRequest,
   createCORSResponse,
-  handleApiError,
-  createCORSHeaders
+  handleApiError
 } from '../_shared/cors'
 
 // Pre-flight request handler for CORS

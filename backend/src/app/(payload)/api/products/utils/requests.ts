@@ -71,8 +71,7 @@ export async function extractProductId(req: NextRequest): Promise<string | null>
       if (body && body.id) {
         productId = body.id;
         console.log(`Extracted product ID from body: ${productId}`);
-      }
-    } catch (e) {
+      }    } catch (_e) {
       // No JSON body or error parsing body
       console.log('No JSON body or error parsing body for ID extraction');
     }

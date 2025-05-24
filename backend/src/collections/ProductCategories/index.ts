@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-type SlugifyArgs = {
+type _SlugifyArgs = {
   data: {
     name?: string;
     slug?: string;

@@ -262,10 +262,9 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
       
       // Bỏ qua việc kiểm tra post tồn tại trước khi xóa
       // Thay vào đó, sử dụng try-catch để xử lý lỗi cho từng ID riêng lẻ
-      for (const id of idsArray) {
-        try {
+      for (const id of idsArray) {        try {
           // Cố gắng xóa post dù nó có tồn tại hay không
-          const deletedPost = await payload.delete({
+          const _deletedPost = await payload.delete({
             collection: 'posts',
             id,
             // Đảm bảo hooks afterDelete được kích hoạt đúng cách
@@ -758,7 +757,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   console.log('POST /api/posts: Request received');
-  const url = new URL(req.url); 
+  const _url = new URL(req.url); 
   const referer = req.headers.get('referer') || '';
   const isAdminRequest = referer.includes('/admin');
   const headers = createCorsHeaders();
@@ -780,10 +779,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     if (isAdminRequest) {
       console.log('Detected admin panel request for POST /api/posts');
-      let requestBody;
-      try {
+      let requestBody;      try {
         requestBody = await req.json();
-      } catch (e) {
+      } catch (_e) {
         requestBody = null; 
         console.log('Admin request: JSON parsing failed or body is empty/malformed.');
       }
@@ -801,11 +799,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         console.log('Admin POST request identified as a query operation for relationship options.');
         const page = Number(requestBody?.page) || 1;
         const limit = Number(requestBody?.limit) || 30; 
-        const sortField = typeof requestBody?.sort === 'string' ? requestBody.sort.trim() : 'createdAt';
-        const sortOrder = typeof requestBody?.order === 'string' && requestBody.order.toLowerCase() === 'desc' ? 'desc' : 'asc';
+        const sortField = typeof requestBody?.sort === 'string' ? requestBody.sort.trim() : 'createdAt';        const sortOrder = typeof requestBody?.order === 'string' && requestBody.order.toLowerCase() === 'desc' ? 'desc' : 'asc';
         const sort = sortOrder === 'desc' ? `-${sortField.replace(/^-/, '')}` : sortField.replace(/^-/, '');
         
-        let query: any = requestBody?.where || {};
+        const query: any = requestBody?.where || {};
 
         if (typeof requestBody?.search === 'string' && requestBody.search.trim() !== '') {
           query.or = query.or || [];

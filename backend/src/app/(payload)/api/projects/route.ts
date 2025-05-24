@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-
-
 import {
   handleOptionsRequest,
-  createCORSResponse,
   handleApiError,
   createCORSHeaders
 } from '../_shared/cors';
@@ -80,13 +77,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         depth: 2, // Populate relationships 2 levels deep
       });
-      
-      if (project.docs.length === 0) {
-        const headers = createCORSHeaders();
+        if (project.docs.length === 0) {
+        const _headers = createCORSHeaders();
         return handleApiError(new Error('Project not found'), 'Không tìm thấy dự án.', 404);
-      }
-
-      const headers = createCORSHeaders()
+      }      const _headers = createCORSHeaders()
       return NextResponse.json(
         {
           success: true,
@@ -94,7 +88,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         {
           status: 200,
-          headers,
+          headers: _headers,
         }
       )
     }    // Otherwise fetch a list of projects
@@ -122,10 +116,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         status: 200,
         headers,
       }
-    )
-  } catch (error) {
+    )  } catch (error) {
     console.error('Projects API Error:', error)
-    const headers = createCORSHeaders()
+    const _headers = createCORSHeaders()
     return handleApiError(error, 'Có lỗi xảy ra khi lấy dữ liệu dự án.', 500)
   }
 }

@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     }    // Lấy các tham số truy vấn (nếu có)
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // Loại dữ liệu cần seed
-    const forceOption = searchParams.has('force'); // Force seed (xóa dữ liệu cũ nếu cần)
+    const _forceOption = searchParams.has('force'); // Force seed (xóa dữ liệu cũ nếu cần)
 
     // Hiển thị thông báo bắt đầu
     console.log(`🌱 Seeding database through API endpoint...${type ? ` (type: ${type})` : ''}`);

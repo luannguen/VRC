@@ -4,10 +4,9 @@ import config from '@payload-config'
 import {
   handleOptionsRequest,
   createCORSResponse,
-  createCORSHeaders,
   withCORS
 } from '../../../_shared/cors'
-import { Post } from '@/payload-types'
+import { Post as _Post } from '@/payload-types'
 
 // Pre-flight request handler for CORS
 export function OPTIONS(req: NextRequest) {

@@ -12,10 +12,10 @@ export function OPTIONS(req: NextRequest) {
   return handleOptionsRequest(req);
 }
 
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(_req: NextRequest): Promise<NextResponse> {
   try {
     // Initialize Payload
-    const payload = await getPayload({
+    const _payload = await getPayload({
       config,
     })
     

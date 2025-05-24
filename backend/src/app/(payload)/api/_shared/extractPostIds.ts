@@ -112,8 +112,7 @@ export async function extractPostIds(req: NextRequest): Promise<{ postId: string
           }
         });
         console.log(`Extracted ${multipleIds.length} post IDs from request body array`);
-      }
-    } catch (e) {
+      }    } catch (_e) {
       // No JSON body or error parsing body
       console.log('Could not parse request body for ID');
     }

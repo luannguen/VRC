@@ -3,7 +3,7 @@ import { getPayload } from "payload";
 import config from "@payload-config";
 import { createCORSHeaders, handleApiError, checkAuth } from "../../_shared/cors";
 import { isAdminRequest, extractProductId, extractProductIds } from "../utils/requests";
-import { formatAdminResponse, formatApiResponse, formatApiErrorResponse, formatBulkResponse } from "../utils/responses";
+import { formatApiResponse, formatApiErrorResponse, formatBulkResponse } from "../utils/responses";
 
 /**
  * Delete a product or multiple products
@@ -32,13 +32,11 @@ export async function handleDELETE(req: NextRequest): Promise<NextResponse> {
     // Initialize Payload
     const payload = await getPayload({
       config,
-    });
-
-    // Extract product IDs
+    });    // Extract product IDs
     const productId = await extractProductId(req);
     const productIds = extractProductIds(req);
     
-    const headers = createCORSHeaders();
+    const _headers = createCORSHeaders();
     
     // Handle bulk delete with comma-separated IDs
     if (productIds) {
@@ -49,10 +47,9 @@ export async function handleDELETE(req: NextRequest): Promise<NextResponse> {
       // Delete multiple products
       const results = [];
       const errors = [];
-      
-      for (const id of productIds) {
+        for (const id of productIds) {
         try {
-          const result = await payload.delete({
+          const _result = await payload.delete({
             collection: "products",
             id,
           });

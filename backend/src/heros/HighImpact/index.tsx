@@ -1,6 +1,7 @@
 'use client'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
 import React, { useEffect } from 'react'
+import clsx from 'clsx'
 
 import type { Page } from '@/payload-types'
 
@@ -8,39 +9,73 @@ import { CMSLink } from '@/components/Link'
 import { Media } from '@/components/Media'
 import RichText from '@/components/RichText'
 
+import styles from './HighImpact.module.css'
+
 export const HighImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
   const { setHeaderTheme } = useHeaderTheme()
 
   useEffect(() => {
     setHeaderTheme('dark')
-  })
+  }, [setHeaderTheme])
 
   return (
-    <div
-      className="relative -mt-[10.4rem] flex items-center justify-center text-white"
+    <section
+      className={clsx(styles.hero, 'bg-gray-900')}
       data-theme="dark"
+      role="banner"
+      aria-label="Hero section"
     >
-      <div className="container mb-8 z-10 relative flex items-center justify-center">
-        <div className="max-w-[36.5rem] md:text-center">
-          {richText && <RichText className="mb-6" data={richText} enableGutter={false} />}
-          {Array.isArray(links) && links.length > 0 && (
-            <ul className="flex md:justify-center gap-4">
-              {links.map(({ link }, i) => {
-                return (
-                  <li key={i}>
-                    <CMSLink {...link} />
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+      {/* Background Image Layer */}
+      <div className={styles.heroBackground}>
+        {media && typeof media === 'object' && (
+          <div className={styles.mediaContainer}>
+            <Media 
+              fill 
+              imgClassName={styles.mediaImage} 
+              priority 
+              resource={media}
+              alt={media.alt || 'Hero background image'}
+            />
+          </div>
+        )}
+        
+        {/* Enhanced Multi-layer Overlay System for Better Text Readability */}
+        <div className={styles.overlayBase} aria-hidden="true" />
+        <div className={styles.overlayGradient} aria-hidden="true" />
+        <div className={styles.overlayEnhanced} aria-hidden="true" />
+      </div>
+
+      {/* Content Layer - Always on top with proper semantic structure */}
+      <div className={styles.content}>
+        <div className={styles.contentContainer}>
+          <div className={styles.contentInner}>
+            {/* Rich Text Content */}
+            {richText && (
+              <div className={styles.richText}>
+                <RichText 
+                  data={richText} 
+                  enableGutter={false} 
+                />
+              </div>
+            )}
+            
+            {/* Action Links */}
+            {Array.isArray(links) && links.length > 0 && (
+              <nav aria-label="Hero actions">
+                <ul className={styles.linksContainer}>
+                  {links.map(({ link }, i) => {
+                    return (
+                      <li key={i}>
+                        <CMSLink {...link} />
+                      </li>
+                    )
+                  })}
+                </ul>
+              </nav>
+            )}
+          </div>
         </div>
       </div>
-      <div className="min-h-[80vh] select-none">
-        {media && typeof media === 'object' && (
-          <Media fill imgClassName="-z-10 object-cover" priority resource={media} />
-        )}
-      </div>
-    </div>
+    </section>
   )
 }

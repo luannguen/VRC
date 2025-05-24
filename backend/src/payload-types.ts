@@ -956,12 +956,7 @@ export interface Product {
   /**
    * Chọn các sản phẩm liên quan để hiển thị phía dưới
    */
-  relatedProducts?:
-    | {
-        relationTo: 'products';
-        value: string | Product;
-      }[]
-    | null;
+  relatedProducts?: (string | Product)[] | null;
   specifications?:
     | {
         name: string;

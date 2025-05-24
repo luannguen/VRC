@@ -89,7 +89,7 @@ const SidebarCustomization: React.FC = () => {
     const initialTimeout = setTimeout(enhanceSidebar, 1000);
     
     // Set up mutation observer to handle dynamic updates
-    const observer = new MutationObserver((mutations) => {
+    const observer = new MutationObserver((_mutations) => {
       enhanceSidebar();
     });
     

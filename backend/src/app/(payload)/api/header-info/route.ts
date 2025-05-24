@@ -8,7 +8,7 @@ import {
 } from '../_shared/cors';
 
 // Type definition for header info
-interface HeaderInfo {
+interface _HeaderInfo {
   companyName: string;
   companyShortName?: string;
   contactSection: {
@@ -42,7 +42,7 @@ interface HeaderInfo {
  * GET handler for header information endpoint
  * Returns only the necessary information for the website header
  */
-export async function GET(req: NextRequest): Promise<NextResponse> {
+export async function GET(_req: NextRequest): Promise<NextResponse> {
   try {
     // Initialize Payload
     const payload = await getPayload({

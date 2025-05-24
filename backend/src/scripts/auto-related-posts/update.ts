@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import payload from 'payload';
 import cliProgress from 'cli-progress';
 import colors from 'colors';
-import type { Post } from '@/payload-types';
+import type { Post as _Post } from '@/payload-types';
 
 // Load environment variables
 dotenv.config();
@@ -49,10 +49,12 @@ function calculateRelevanceScore(sourcePost: any, targetPost: any): number {
 }
 
 const updateAutoRelatedPosts = async () => {  try {
+    // Import the config using ES modules
+    const { default: config } = await import('../../payload.config');
+    
     // Initialize Payload
     await payload.init({
-      // Adding required config parameter
-      config: require('../../payload.config.ts').default,
+      config,
     });
 
     console.log(colors.cyan('\n📊 Starting auto-related posts update'));
