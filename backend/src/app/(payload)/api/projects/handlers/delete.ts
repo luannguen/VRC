@@ -66,12 +66,11 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
           id: projectId,
         });
         deletedProjects.push({ id: projectId });
-        console.log(`Successfully deleted project: ${projectId}`);
-      } catch (error) {
+        console.log(`Successfully deleted project: ${projectId}`);      } catch (error: any) {
         console.error(`Failed to delete project ${projectId}:`, error);
         errors.push({
           id: projectId,
-          message: `Failed to delete project: ${error.message}`
+          message: `Failed to delete project: ${error?.message || 'Unknown error'}`
         });
       }
     }    // Format response based on context and number of deleted projects
