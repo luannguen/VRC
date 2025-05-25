@@ -1,4 +1,4 @@
- {
+{
   "name": "vrc",
   "version": "1.0.0",
   "private": true,
@@ -9,7 +9,8 @@
     "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "dependencies": {
-    "node-fetch": "^3.3.2",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.5.0",
+    "node-fetch": "^3.3.2"
   }
 }
