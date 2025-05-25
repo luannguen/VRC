@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import {
   handleOptionsRequest,
-  createCORSResponse,
-  handleApiError
 } from '../_shared/cors'
+
+// Import handlers
+import { handleGET } from './handlers/get'
+import { handlePOST } from './handlers/post'
+import { handleDELETE } from './handlers/delete'
 
 // Pre-flight request handler for CORS
 export function OPTIONS(req: NextRequest) {
@@ -13,20 +14,14 @@ export function OPTIONS(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  try {
-    // Initialize Payload
-    const payload = await getPayload({
-      config,
-    })
-    
-    // Implementation depends on the specific API
-    // For now, just return a simple response
-    return createCORSResponse({
-      success: true,
-      message: 'events API endpoint is working!',
-    }, 200);
-  } catch (error) {
-    console.error('API Error:', error);
-    return handleApiError(error, 'An error occurred', 500);
-  }
+  return handleGET(req);
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  return handlePOST(req);
+}
+
+// DELETE method handler
+export async function DELETE(req: NextRequest): Promise<NextResponse> {
+  return handleDELETE(req);
 }
