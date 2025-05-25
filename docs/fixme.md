@@ -124,6 +124,134 @@ Tạo file `/api/services/handlers/get.ts` mới với proper admin support và 
 
 ---
 
+# KHẮC PHỤC LỖI XÓA RELATED PROJECTS (DỰ ÁN LIÊN QUAN)
+
+## Mô tả vấn đề
+
+Khi xóa dự án liên quan từ giao diện admin của Payload CMS, gặp các vấn đề:
+
+1. **Xóa từ trang danh sách dự án**: Hiển thị lỗi "An unknown error has occurred" với 400 Bad Request
+2. **Bulk delete**: Không thể xóa nhiều dự án cùng lúc
+3. **Response format**: API trả về sai định dạng mà admin panel mong đợi
+
+### Triệu chứng:
+- Single delete từ list view báo lỗi 400 Bad Request
+- Bulk delete (chọn nhiều dự án) không hoạt động
+- Console browser hiển thị network errors cho `/api/projects` DELETE requests
+- Admin panel không hiểu được response format
+
+## Nguyên nhân
+
+Phân tích mã nguồn và kiểm tra API endpoints, xác định được các nguyên nhân chính:
+
+1. **Import pattern cũ**: Handler DELETE sử dụng `import payload from 'payload'` thay vì pattern mới
+2. **Logic xử lý ID không đầy đủ**: 
+   - Chỉ hỗ trợ single ID extraction từ body
+   - Không hỗ trợ bulk delete với multiple IDs từ query parameters
+   - Không handle được format `where[id][in][0]`, `where[id][in][1]` từ admin panel
+3. **Response format không đúng**:
+   - List view cần format `{ docs: [...], errors: [], message: null }`
+   - Edit view cần format `{ message: null, doc: {...}, errors: [] }`
+
+## Giải pháp thực hiện
+
+### 1. Cập nhật import pattern
+
+```typescript
+// Trước (cũ)
+import payload from 'payload';
+
+// Sau (mới - theo pattern Services)
+import { getPayload } from 'payload';
+import config from '@payload-config';
+```
+
+### 2. Enhanced ID extraction logic
+
+```typescript
+// Extract single ID từ query parameters (list view)
+const singleId = url.searchParams.get('where[id][in][0]');
+
+// Extract multiple IDs cho bulk delete
+const projectIds = [];
+for (const [key, value] of url.searchParams.entries()) {
+  if (key.match(/^where\[id\]\[in\]\[\d+\]$/)) {
+    projectIds.push(value);
+  }
+}
+
+// Fallback từ request body (edit view)
+if (projectIds.length === 0 && body.id) {
+  projectIds.push(body.id);
+}
+```
+
+### 3. Bulk delete processing
+
+```typescript
+const deletedProjects = [];
+const errors = [];
+
+for (const projectId of projectIds) {
+  try {
+    await payload.delete({
+      collection: 'projects',
+      id: projectId,
+    });
+    deletedProjects.push({ id: projectId });
+  } catch (error) {
+    errors.push({
+      message: `Failed to delete project ${projectId}: ${error.message}`,
+      field: 'id',
+    });
+  }
+}
+```
+
+### 4. Response format logic
+
+```typescript
+// Detect request source
+const referer = req.headers.get('referer') || '';
+const isFromListView = referer.includes('/admin/collections/projects') && !referer.includes('/edit');
+
+if (isFromListView) {
+  // List view format
+  return NextResponse.json({
+    docs: deletedProjects,
+    errors: errors,
+    message: null,
+  }, { status: 200 });
+} else {
+  // Edit view format  
+  return NextResponse.json({
+    message: null,
+    doc: {
+      id: projectIds[0],
+      status: 'deleted'
+    },
+    errors: errors,
+  }, { status: 200 });
+}
+```
+
+### 5. Key improvements thực hiện
+
+1. **Bulk delete support**: Có thể xóa nhiều dự án cùng lúc từ list view
+2. **Proper ID extraction**: Hỗ trợ đầy đủ các format từ admin panel
+3. **Response format detection**: Tự động detect và trả về đúng format
+4. **Error handling**: Partial failure support - tiếp tục xóa các projects khác nếu 1 project lỗi
+5. **Modern import pattern**: Sử dụng `getPayload` và config theo Services pattern
+
+### 6. Testing results
+
+✅ **Single delete từ list view**: 200 status, đúng format `{ docs: [...], errors: [], message: null }`  
+✅ **Edit view delete**: 200 status, đúng format `{ message: null, doc: {...}, errors: [] }`  
+✅ **Bulk delete**: Có thể xóa 3 projects cùng lúc thành công  
+✅ **Admin panel compatibility**: Không còn hiển thị "Unknown Error"
+
+---
+
 ## Authentication Architecture Analysis (May 25, 2025)
 
 ### 🔍 DUAL API AUTHENTICATION SYSTEM:
