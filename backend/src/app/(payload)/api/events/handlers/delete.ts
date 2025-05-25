@@ -59,13 +59,34 @@ async function extractEventId(req: NextRequest): Promise<string | null> {
 
 function extractEventIds(req: NextRequest): string[] | null {
   const url = new URL(req.url);
-  const ids = url.searchParams.get('ids');
+  const ids = new Set<string>();
   
-  if (!ids) {
-    return null;
+  // Method 1: Check comma-separated IDs param (?ids=id1,id2,id3)
+  const idsParam = url.searchParams.get('ids');
+  if (idsParam) {
+    idsParam.split(',').map(id => id.trim()).filter(Boolean).forEach(id => ids.add(id));
   }
   
-  return ids.split(',').map(id => id.trim()).filter(id => id.length > 0);
+  // Method 2: Check admin panel bulk delete format (where[id][in][0]=id1&where[id][in][1]=id2)
+  for (const [key, value] of url.searchParams.entries()) {
+    if (key.match(/where\[id\]\[in\]\[\d+\]/) && value) {
+      console.log(`Found bulk delete ID: ${key}=${value}`);
+      ids.add(value);
+    }
+  }
+  
+  // Method 3: Check alternative admin panel format (where[and][0][id][in][0]=id1)
+  for (const [key, value] of url.searchParams.entries()) {
+    if (key.match(/where\[\w+\]\[\d+\]\[id\]\[in\]\[\d+\]/) && value) {
+      console.log(`Found complex bulk delete ID: ${key}=${value}`);
+      ids.add(value);
+    }
+  }
+  
+  const extractedIds = Array.from(ids);
+  console.log(`Extracted ${extractedIds.length} IDs for bulk delete:`, extractedIds);
+  
+  return extractedIds.length > 0 ? extractedIds : null;
 }
 
 function formatApiResponse(
@@ -153,24 +174,20 @@ export async function handleDELETE(req: NextRequest): Promise<NextResponse> {
         null,
         401
       );
-    }
-
-    // Initialize Payload
+    }    // Initialize Payload
     const payload = await getPayload({
       config,
     });
 
-    // Extract event IDs
-    const eventId = await extractEventId(req);
+    // Extract event IDs - Check bulk delete FIRST
     const eventIds = extractEventIds(req);
+    const eventId = await extractEventId(req);
     
     const _headers = createCORSHeaders();
     
-    // Handle bulk delete with comma-separated IDs
-    if (eventIds) {
-      if (eventIds.length === 0) {
-        return formatApiErrorResponse("Không có ID sự kiện được cung cấp", null, 400);
-      }
+    // Handle bulk delete with multiple IDs (priority over single delete)
+    if (eventIds && eventIds.length > 0) {
+      console.log(`Processing bulk delete for ${eventIds.length} events:`, eventIds);
       
       // Delete multiple events
       const results = [];
@@ -183,12 +200,39 @@ export async function handleDELETE(req: NextRequest): Promise<NextResponse> {
             id: id,
           });
           results.push(event);
+          console.log(`Successfully deleted event: ${id}`);
         } catch (err: any) {
+          console.error(`Failed to delete event ${id}:`, err.message);
           errors.push({
             id,
             error: err.message
           });
         }
+      }
+      
+      console.log(`Bulk delete completed: ${results.length} successful, ${errors.length} failed`);
+      
+      // Check if this is from admin panel
+      if (isAdminRequest(req)) {
+        const headers = createCORSHeaders();
+        headers.append('X-Payload-Admin', 'true');
+        headers.append('Cache-Control', 'no-cache, no-store, must-revalidate');
+        headers.append('X-Payload-Refresh', 'events');
+        
+        // Admin panel expects specific format for bulk operations
+        const adminResponse = {
+          docs: results.map(event => ({ id: event.id })),
+          errors: errors.map(err => ({
+            message: err.error,
+            field: 'id'
+          })),
+          message: errors.length === 0 ? null : `Đã xóa ${results.length}/${eventIds.length} sự kiện`
+        };
+        
+        return NextResponse.json(adminResponse, { 
+          status: errors.length === 0 ? 200 : 207,
+          headers: headers
+        });
       }
       
       return formatBulkResponse(results, errors, `Đã xóa ${results.length}/${eventIds.length} sự kiện`);
