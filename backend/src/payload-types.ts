@@ -1225,12 +1225,7 @@ export interface Service {
   /**
    * Chọn các dịch vụ liên quan để hiển thị phía dưới
    */
-  relatedServices?:
-    | {
-        relationTo: 'services';
-        value: string | Service;
-      }[]
-    | null;
+  relatedServices?: (string | Service)[] | null;
   status: 'draft' | 'published';
   meta?: {
     title?: string | null;

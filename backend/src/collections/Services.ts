@@ -247,11 +247,10 @@ export const Services: CollectionConfig = {
         position: 'sidebar',
         description: 'Đánh dấu là dịch vụ nổi bật để hiện trên trang chủ',
       },
-    },
-    {      name: 'relatedServices',
+    },    {      name: 'relatedServices',
       type: 'relationship',
       label: 'Dịch vụ liên quan',
-      relationTo: ['services'],
+      relationTo: 'services',
       hasMany: true,
       admin: {
         description: 'Chọn các dịch vụ liên quan để hiển thị phía dưới',
