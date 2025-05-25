@@ -1,9 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPayload } from 'payload';
 import config from '@payload-config';
-import { checkAuth } from '../../_shared/cors';
-import { isAdminRequest } from '../utils/requests';
-import { formatAdminResponse, formatApiResponse, formatApiErrorResponse } from '../utils/responses';
+import { checkAuth, createCORSHeaders } from '../../_shared/cors';
+
+// Direct utility functions to avoid import issues
+function isAdminRequest(req: NextRequest): boolean {
+  const referer = req.headers.get('referer') || '';
+  return referer.includes('/admin');
+}
+
+function formatAdminResponse(data: any, message: string | null = null): NextResponse {
+  const headers = createCORSHeaders();
+  headers.append('X-Payload-Admin', 'true');
+  headers.append('Cache-Control', 'no-cache, no-store, must-revalidate');
+  headers.append('Pragma', 'no-cache');
+  headers.append('Expires', '0');
+  
+  return NextResponse.json({
+    message,
+    doc: data,
+    errors: []
+  }, {
+    status: 200,
+    headers
+  });
+}
+
+function formatApiResponse(data: any, message: string = 'Thành công', status: number = 200): NextResponse {
+  const headers = createCORSHeaders();
+  
+  return NextResponse.json({
+    success: true,
+    message,
+    data
+  }, {
+    status,
+    headers
+  });
+}
+
+function formatApiErrorResponse(message: string, data: any = null, status: number = 400): NextResponse {
+  const headers = createCORSHeaders();
+  
+  return NextResponse.json({
+    success: false,
+    message,
+    data
+  }, {
+    status,
+    headers
+  });
+}
 
 /**
  * Handle POST requests to create new events
@@ -211,7 +258,7 @@ export async function handlePOST(req: NextRequest): Promise<NextResponse> {
       // Return appropriate format based on request type
       if (adminRequest) {
         // Admin panel expects this specific format
-        return formatAdminResponse(result, 201);
+        return formatAdminResponse(result, null);
       } else {
         // API clients get this format
         return formatApiResponse(
