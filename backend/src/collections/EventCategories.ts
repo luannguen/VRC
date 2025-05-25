@@ -8,11 +8,10 @@ export const EventCategories: CollectionConfig = {
   labels: {
     singular: 'Danh mục sự kiện',
     plural: 'Danh mục sự kiện',
-  },
-  admin: {
+  },  admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'slug'],
-    group: 'Nội dung',
+    group: 'Sự kiện',
   },
   access: {
     create: authenticated,
