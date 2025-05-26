@@ -17,7 +17,7 @@ export const ProjectCategories: CollectionConfig = {
     singular: 'Danh mục dự án',
   },  admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'slug', 'color', 'orderNumber', 'updatedAt'],
+    defaultColumns: ['title', 'slug', 'projectCount', 'color', 'orderNumber', 'updatedAt'],
     group: 'Dự án',
     description: 'Quản lý danh mục phân loại dự án - collection độc lập.',
     listSearchableFields: ['title', 'description', 'slug'],
@@ -29,7 +29,7 @@ export const ProjectCategories: CollectionConfig = {
         return doc;
       },
     ],
-  },fields: [
+  },  fields: [
     {
       name: 'title',
       type: 'text',
@@ -39,6 +39,16 @@ export const ProjectCategories: CollectionConfig = {
         description: 'Nhập tên danh mục dự án (VD: Điều hòa thương mại, Kho lạnh, Hệ thống đặc biệt...)',
       },
     },    {
+      name: 'projectCount',
+      type: 'ui',
+      label: 'Số dự án',
+      admin: {
+        components: {
+          Cell: '@/components/admin/ProjectCategoryCell',
+        },
+        position: 'sidebar',
+      },
+    },{
       name: 'description',
       type: 'textarea',
       label: 'Mô tả',
@@ -109,14 +119,24 @@ export const ProjectCategories: CollectionConfig = {
         position: 'sidebar',
         description: 'Bỏ tick để ẩn danh mục này khỏi frontend',
       },
-    },
-    {
+    },    {
       name: 'featuredImage',
       type: 'upload',
       label: 'Hình ảnh đại diện',
       relationTo: 'media',
       admin: {
         description: 'Hình ảnh đại diện cho danh mục dự án (không bắt buộc)',
+      },
+    },
+    {
+      name: 'categoryRelations',
+      type: 'ui',
+      label: 'Danh mục con & Dự án liên quan',
+      admin: {
+        components: {
+          Field: '@/components/admin/CategoryRelations',
+        },
+        condition: (data: any) => !!data?.id, // Only show if category has been saved
       },
     },
     ...slugField(),

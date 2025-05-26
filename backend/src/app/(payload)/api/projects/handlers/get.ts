@@ -52,14 +52,17 @@ export async function handleGET(req: NextRequest): Promise<NextResponse> {
     });
 
     const url = new URL(req.url);
-    
-    // Parse query parameters - handle both URL params and form data (for method override requests)
+      // Parse query parameters - handle both URL params and form data (for method override requests)
     let queryParams = new URLSearchParams();
     
     // First, get URL parameters
     url.searchParams.forEach((value, key) => {
       queryParams.set(key, value);
     });
+    
+    // Debug: Log all query parameters
+    console.log('🔍 GET /api/projects: Raw URL searchParams:', Object.fromEntries(url.searchParams.entries()));
+    console.log('🔍 GET /api/projects: Processed queryParams:', Object.fromEntries(queryParams.entries()));
     
     // If this is a POST request with form data (method override), parse form data as query params
     const contentType = req.headers.get('content-type') || '';
@@ -135,14 +138,38 @@ export async function handleGET(req: NextRequest): Promise<NextResponse> {
 
     // List projects with filters and pagination
     console.log('GET /api/projects: Fetching projects list with filters');
-    
-    // Build where conditions
+      // Build where conditions
     const where: any = {};
     
-    // Filter by category
-    const category = queryParams.get('category');
-    if (category) {
-      where.categories = { in: [category] };
+    console.log('🔍 GET /api/projects: Starting to build where conditions');
+    
+    // Handle Payload CMS-style category filter with nested query parameters
+    // Look for patterns like: where[categories][in][0]=categoryId
+    let categoryIds: string[] = [];
+    
+    // Check for direct category parameter
+    const directCategory = queryParams.get('category');
+    if (directCategory) {
+      categoryIds.push(directCategory);
+      console.log('🎯 Found direct category:', directCategory);
+    }
+    
+    // Check for Payload CMS style nested parameters
+    for (const [key, value] of queryParams.entries()) {
+      // Match patterns like: where[categories][in][0], where[categories][in][1], etc.
+      const categoryMatch = key.match(/^where\[categories\]\[in\]\[(\d+)\]$/);
+      if (categoryMatch) {
+        categoryIds.push(value);
+        console.log(`🎯 Found nested category parameter ${key}:`, value);
+      }
+    }
+    
+    // Filter by category if any found
+    if (categoryIds.length > 0) {
+      where.categories = { in: categoryIds };
+      console.log('🔍 Final categories filter:', where.categories);
+    } else {
+      console.log('🔍 No category filters found');
     }
     
     // Filter by featured
@@ -185,8 +212,7 @@ export async function handleGET(req: NextRequest): Promise<NextResponse> {
 
     // Additional query parameters for admin interface
     const depth = Number(queryParams.get('depth') || 1);
-    
-    console.log('GET /api/projects: Query conditions:', {
+      console.log('GET /api/projects: Query conditions:', {
       where,
       page,
       limit,
@@ -211,6 +237,23 @@ export async function handleGET(req: NextRequest): Promise<NextResponse> {
       limit: projects.limit,
       docsCount: projects.docs.length,
     });
+    
+    // Debug: Log each project's categories to verify the filter is working
+    if (projects.docs && projects.docs.length > 0) {
+      console.log('🔍 Projects found with their categories:');
+      projects.docs.forEach((project: any, index: number) => {
+        console.log(`   Project ${index + 1}: "${project.title}"`);
+        console.log(`     Categories:`, project.categories);
+        console.log(`     Has categories:`, project.categories && project.categories.length > 0);
+        if (project.categories && project.categories.length > 0) {
+          project.categories.forEach((cat: any, catIndex: number) => {
+            console.log(`       Category ${catIndex + 1}:`, typeof cat === 'object' ? cat.id || cat._id : cat);
+          });
+        }
+      });
+    } else {
+      console.log('🔍 No projects found for this query');
+    }
 
     // Return admin format for admin requests
     if (adminRequest) {
