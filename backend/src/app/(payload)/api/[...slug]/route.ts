@@ -23,11 +23,29 @@ const withCorsHeaders = (handler: any) => {
     const isCollectionRoute = segments.length >= 2 && segments[0] === 'api';
     const collection = isCollectionRoute ? segments[1] : '';
     const isPostsRoute = collection === 'posts';
-    
-    if (isPostsRoute) {
+      if (isPostsRoute) {
       console.log(`Built-in Payload posts route called: ${req.url}`);
     } else {
-      console.log(`Built-in Payload route called: ${req.url}`);
+      console.log(`🔥 Built-in Payload route called: ${req.url} | Collection: ${collection}`);
+    }
+    
+    // Specific logging for technologies collection
+    if (collection === 'technologies') {
+      console.log(`\n🚀 === TECHNOLOGIES BUILT-IN ROUTE ===`);
+      console.log('Method:', req.method);
+      console.log('URL:', req.url);
+      console.log('Referer:', req.headers.get('referer'));
+      console.log('Content-Type:', req.headers.get('content-type'));
+      
+      if (req.method === 'POST') {
+        try {
+          const body = await req.clone().json();
+          console.log('Technologies POST body:', JSON.stringify(body, null, 2));
+        } catch (e) {
+          console.log('Cannot parse request body');
+        }
+      }
+      console.log('===========================================\n');
     }
     
     // Check if this is from the admin panel

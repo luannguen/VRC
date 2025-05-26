@@ -1,32 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+
 import {
   handleOptionsRequest,
-  createCORSResponse,
-  handleApiError
-} from '../_shared/cors'
+  handleApiError,
+  createCORSHeaders
+} from '../_shared/cors';
+import { handleDELETE } from './handlers/delete';
+import { handleGET } from './handlers/get';
+import { handlePOST } from './handlers/post';
+import { handlePUT } from './handlers/put';
 
 // Pre-flight request handler for CORS
 export function OPTIONS(req: NextRequest) {
   return handleOptionsRequest(req);
 }
 
-export async function GET(_req: NextRequest): Promise<NextResponse> {
-  try {
-    // Initialize Payload
-    const _payload = await getPayload({
-      config,
-    })
-    
-    // Implementation depends on the specific API
-    // For now, just return a simple response
-    return createCORSResponse({
-      success: true,
-      message: 'technologies API endpoint is working!',
-    }, 200);
-  } catch (error) {
-    console.error('API Error:', error);
-    return handleApiError(error, 'An error occurred', 500);
-  }
+// GET method handler
+export function GET(req: NextRequest) {
+  return handleGET(req);
+}
+
+// DELETE method handler
+export function DELETE(req: NextRequest) {
+  return handleDELETE(req);
+}
+
+// POST method handler
+export function POST(req: NextRequest) {
+  return handlePOST(req);
+}
+
+// PUT method handler
+export function PUT(req: NextRequest) {
+  return handlePUT(req);
 }

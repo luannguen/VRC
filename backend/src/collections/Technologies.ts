@@ -20,6 +20,28 @@ export const Technologies: CollectionConfig = {
     update: authenticated,
     delete: authenticated,
   },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation, req }) => {
+        console.log('\n🔍 === TECHNOLOGIES BEFORE VALIDATE HOOK ===');
+        console.log('Operation:', operation);
+        console.log('Data received:', JSON.stringify(data, null, 2));        console.log('Request URL:', req?.url);
+        console.log('Request method:', req?.method);
+        console.log('User agent:', req?.headers?.get?.('user-agent'));
+        console.log('==========================================\n');
+        return data;
+      }
+    ],
+    beforeChange: [
+      ({ data, operation, req }) => {
+        console.log('\n🔧 === TECHNOLOGIES BEFORE CHANGE HOOK ===');
+        console.log('Operation:', operation);
+        console.log('Final data:', JSON.stringify(data, null, 2));
+        console.log('=========================================\n');
+        return data;
+      }
+    ]
+  },
   fields: [
     {
       name: 'name',
@@ -50,13 +72,12 @@ export const Technologies: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
-    },
-    {
+    },    {
       name: 'logo',
       type: 'upload',
       label: 'Logo',
       relationTo: 'media',
-      required: true,
+      required: false, // Temporarily make optional for debugging
     },
     {
       name: 'website',

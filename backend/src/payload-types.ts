@@ -1299,7 +1299,7 @@ export interface Technology {
   slug?: string | null;
   slugLock?: boolean | null;
   type: 'technology' | 'partner' | 'supplier';
-  logo: string | Media;
+  logo?: (string | null) | Media;
   /**
    * URL website của công ty/đối tác (https://example.com)
    */
