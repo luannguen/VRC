@@ -15,6 +15,7 @@ import { Users } from './collections/Users'
 import { ContactSubmissions } from './collections/ContactSubmissions'
 import { Navigation } from './collections/Navigation'
 import { ProductCategories } from './collections/ProductCategories'
+import { ProjectCategories } from './collections/ProjectCategories'
 import { NewsCategories } from './collections/NewsCategories'
 import { ServiceCategories } from './collections/ServiceCategories'
 import { Products } from './collections/Products'
@@ -75,8 +76,8 @@ export default buildConfig({  admin: {
     Pages, 
     Posts, 
     Media, 
-    Categories, 
-    ProductCategories,
+    Categories,    ProductCategories,
+    ProjectCategories,
     NewsCategories,
     ServiceCategories,
     Users, 

@@ -72,6 +72,7 @@ export interface Config {
     media: Media;
     categories: Category;
     'product-categories': ProductCategory;
+    'project-categories': ProjectCategory;
     'news-categories': NewsCategory;
     'service-categories': ServiceCategory;
     users: User;
@@ -99,6 +100,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'product-categories': ProductCategoriesSelect<false> | ProductCategoriesSelect<true>;
+    'project-categories': ProjectCategoriesSelect<false> | ProjectCategoriesSelect<true>;
     'news-categories': NewsCategoriesSelect<false> | NewsCategoriesSelect<true>;
     'service-categories': ServiceCategoriesSelect<false> | ServiceCategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -820,6 +822,55 @@ export interface ProductCategory {
   createdAt: string;
 }
 /**
+ * Quản lý danh mục phân loại dự án - collection độc lập.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-categories".
+ */
+export interface ProjectCategory {
+  id: string;
+  /**
+   * Nhập tên danh mục dự án (VD: Điều hòa thương mại, Kho lạnh, Hệ thống đặc biệt...)
+   */
+  title: string;
+  /**
+   * Mô tả ngắn gọn về loại dự án này (không bắt buộc)
+   */
+  description?: string | null;
+  /**
+   * Chọn danh mục cha để tạo cấu trúc phân cấp (không bắt buộc)
+   */
+  parent?: (string | null) | ProjectCategory;
+  /**
+   * Tên icon hoặc emoji đại diện cho danh mục (VD: 🏢, ❄️, ⚙️)
+   */
+  icon?: string | null;
+  /**
+   * Mã màu hex cho hiển thị (VD: #3B82F6). Không bắt buộc.
+   */
+  color?: string | null;
+  /**
+   * Bật để hiển thị danh mục này trong menu frontend
+   */
+  showInMenu?: boolean | null;
+  /**
+   * Số thứ tự để sắp xếp danh mục (số nhỏ hiển thị trước)
+   */
+  orderNumber?: number | null;
+  /**
+   * Bỏ tick để ẩn danh mục này khỏi frontend
+   */
+  isActive?: boolean | null;
+  /**
+   * Hình ảnh đại diện cho danh mục dự án (không bắt buộc)
+   */
+  featuredImage?: (string | null) | Media;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Quản lý danh mục phân loại dịch vụ.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1040,7 +1091,10 @@ export interface Project {
       }[]
     | null;
   services?: ('consulting' | 'installation' | 'maintenance' | 'repair' | 'support')[] | null;
-  categories?: (string | Category)[] | null;
+  /**
+   * Chọn danh mục cho dự án này
+   */
+  categories?: (string | ProjectCategory)[] | null;
   /**
    * Đánh dấu là dự án nổi bật để hiện trên trang chủ
    */
@@ -1487,6 +1541,10 @@ export interface PayloadLockedDocument {
         value: string | ProductCategory;
       } | null)
     | ({
+        relationTo: 'project-categories';
+        value: string | ProjectCategory;
+      } | null)
+    | ({
         relationTo: 'news-categories';
         value: string | NewsCategory;
       } | null)
@@ -1883,6 +1941,25 @@ export interface ProductCategoriesSelect<T extends boolean = true> {
   featuredImage?: T;
   showInMenu?: T;
   orderNumber?: T;
+  slug?: T;
+  slugLock?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-categories_select".
+ */
+export interface ProjectCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  parent?: T;
+  icon?: T;
+  color?: T;
+  showInMenu?: T;
+  orderNumber?: T;
+  isActive?: T;
+  featuredImage?: T;
   slug?: T;
   slugLock?: T;
   updatedAt?: T;

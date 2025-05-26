@@ -144,15 +144,15 @@ export const Projects: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
-    },
-    {
+    },    {
       name: 'categories',
       type: 'relationship',
-      label: 'Danh mục',
-      relationTo: 'categories',
+      label: 'Danh mục dự án',
+      relationTo: 'project-categories',
       hasMany: true,
       admin: {
         position: 'sidebar',
+        description: 'Chọn danh mục cho dự án này',
       },
     },
     {

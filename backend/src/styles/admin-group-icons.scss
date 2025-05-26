@@ -56,6 +56,11 @@
   content: "🏗️";
 }
 
+/* Project Categories Group */
+.nav-group:has([href*="/admin/collections/project-categories"]) .nav-group__toggle::before {
+  content: "🗂️";
+}
+
 /* Events Group */
 .nav-group:has([href*="/admin/collections/events"]) .nav-group__toggle::before {
   content: "📅";
