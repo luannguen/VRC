@@ -46,7 +46,19 @@ export default buildConfig({  admin: {
       baseDir: path.resolve(dirname),
     },
     user: Users.slug,
-    livePreview: {
+    // Fix for Payload CMS hydration mismatch issue #11066
+    // https://github.com/payloadcms/payload/issues/11066
+    suppressHydrationWarning: true,livePreview: {
+      url: ({ req }: { req: PayloadRequest }) => {
+        // Dynamically determine the URL based on environment
+        if (process.env.NODE_ENV === 'production') {
+          return process.env.FRONTEND_URL || getServerSideURL()
+        }
+        
+        // Development URLs
+        return process.env.FRONTEND_URL || 'http://localhost:3000'
+      },
+      collections: ['posts', 'pages'],
       breakpoints: [
         {
           label: 'Mobile',

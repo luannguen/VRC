@@ -9,6 +9,8 @@ import React from 'react'
 import type { Props as MediaProps } from '../types'
 
 import { cssVariables } from '@/cssVariables'
+import { PayloadImageWrapper } from './PayloadImageWrapper'
+// Removed import of fix-iframe-height to prevent hydration mismatch
 
 const { breakpoints } = cssVariables
 
@@ -53,7 +55,6 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
 
     src = mediaUrl ? `${mediaUrl}${cacheTag ? `?${cacheTag}` : ''}` : ''
   }
-
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
 
   // NOTE: this is used by the browser to determine which image to download at different screen sizes
@@ -62,23 +63,37 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     : Object.entries(breakpoints)
         .map(([, value]) => `(max-width: ${value}px) ${value * 2}w`)
         .join(', ')
-
-  return (
-    <picture className={cn(pictureClassName)}>
-      <NextImage
-        alt={alt || ''}
-        className={cn(imgClassName)}
-        fill={fill}
-        height={!fill ? height : undefined}
-        placeholder="blur"
-        blurDataURL={placeholderBlur}
-        priority={priority}
-        quality={100}
-        loading={loading}
-        sizes={sizes}
-        src={src}
-        width={!fill ? width : undefined}
-      />
-    </picture>
+      return (
+    <PayloadImageWrapper fill={fill}>
+      <picture 
+        className={cn(pictureClassName)}
+        style={{
+          ...(fill && { 
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            minHeight: '300px', // Increased minimum height for Next.js Image fill
+            // Ensure height in all contexts, especially Payload live preview
+            aspectRatio: fill && !height ? '16/9' : undefined,
+          }),
+        }}
+      >
+        <NextImage
+          alt={alt || ''}
+          className={cn(imgClassName)}
+          fill={fill}
+          height={!fill ? height : undefined}
+          placeholder="blur"
+          blurDataURL={placeholderBlur}
+          priority={priority}
+          quality={100}
+          loading={loading}
+          sizes={sizes}
+          src={src}
+          width={!fill ? width : undefined}
+        />
+      </picture>
+    </PayloadImageWrapper>
   )
 }

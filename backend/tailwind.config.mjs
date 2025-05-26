@@ -1,5 +1,6 @@
 import tailwindcssAnimate from 'tailwindcss-animate'
 import typography from '@tailwindcss/typography'
+import plugin from 'tailwindcss/plugin'
 
 /** @type {import('tailwindcss').Config} */
 const config = {
@@ -10,7 +11,20 @@ const config = {
     './src/**/*.{ts,tsx}',
   ],
   darkMode: ['selector', '[data-theme="dark"]'],
-  plugins: [tailwindcssAnimate, typography],
+  plugins: [
+    tailwindcssAnimate, 
+    typography,
+    plugin(function ({ matchUtilities, theme }) {
+      matchUtilities(
+        {
+          'text-shadow': (value) => ({
+            textShadow: value,
+          }),
+        },
+        { values: theme('textShadow') }
+      )
+    }),
+  ],
   prefix: '',
   safelist: [
     'lg:col-span-4',
@@ -106,6 +120,14 @@ const config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+      },
+      textShadow: {
+        'sm': '0 1px 2px rgba(0, 0, 0, 0.5)',
+        'DEFAULT': '0 2px 4px rgba(0, 0, 0, 0.5)',
+        'lg': '0 8px 16px rgba(0, 0, 0, 0.6)',
+        'xl': '0 20px 25px rgba(0, 0, 0, 0.7)',
+        '2xl': '0 25px 50px rgba(0, 0, 0, 0.8)',
+        'none': 'none',
       },
       typography: () => ({
         DEFAULT: {
