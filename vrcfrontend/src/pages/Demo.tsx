@@ -4,6 +4,7 @@ import CustomFeaturedTopics from "@/components/CustomFeaturedTopics";
 import LatestPublications from "@/components/LatestPublications";
 import DataResources from "@/components/DataResources";
 import ContactForm from "@/components/ContactForm";
+import MultilingualDemo from "@/components/MultilingualDemo";
 
 const Demo = () => {
   return (
@@ -15,6 +16,10 @@ const Demo = () => {
           Trang này sử dụng các component tùy chỉnh để tạo sự khác biệt với trang chủ.
         </p>
       </div>
+      
+      {/* Multilingual Demo */}
+      <MultilingualDemo />
+      
       <CustomHeroSection />
       <CustomFeaturedTopics />
       <LatestPublications />
