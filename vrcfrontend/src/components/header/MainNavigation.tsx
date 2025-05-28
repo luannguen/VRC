@@ -22,7 +22,6 @@ const MainNavigation = ({ isMobile = false }: MainNavigationProps) => {  // Navi
         ))}
         <AppLink routeKey="NEWS" className="navbar-link text-lg">Tin tức</AppLink>
         <AppLink routeKey="EVENTS" className="navbar-link text-lg">Sự kiện</AppLink>
-        <AppLink routeKey="DEMO" className="navbar-link text-lg">Demo</AppLink>
       </nav>
     );
   }
@@ -40,7 +39,6 @@ const MainNavigation = ({ isMobile = false }: MainNavigationProps) => {  // Navi
           <div className="flex flex-col space-y-2">
             <AppLink routeKey="NEWS" className="text-primary hover:text-accent text-base">Tin tức</AppLink>
             <AppLink routeKey="EVENTS" className="text-primary hover:text-accent text-base">Sự kiện</AppLink>
-            <AppLink routeKey="DEMO" className="text-primary hover:text-accent text-base">Demo</AppLink>
           </div>
         </div>
       </div>

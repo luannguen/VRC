@@ -3,8 +3,8 @@
  * Displays and manages content items
  */
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
+import { useContentList } from '../controllers/content.controller';
 
 interface ContentFilterProps {
   options: any;
@@ -237,36 +237,37 @@ const ContentItem: React.FC<ContentItemProps> = ({
 };
 
 const ContentList: React.FC = () => {
-  const [content, setContent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    content,
+    loading,
+    error,
+    pagination,
+    options,
+    fetchContent,
+    applyFilters
+  } = useContentList();
 
-  const fetchContent = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get('/api/content');
-      setContent(response.data);
-    } catch (err) {
-      setError('Failed to fetch content.');
-    } finally {
-      setLoading(false);
+  // Placeholder for handling content actions
+  const handleViewContent = (id: string) => {
+    console.log(`View content with ID: ${id}`);
+    // Navigate to content detail view
+  };
+
+  const handleEditContent = (id: string) => {
+    console.log(`Edit content with ID: ${id}`);
+    // Navigate to content edit form
+  };
+
+  const handleDeleteContent = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this content item?')) {
+      console.log(`Delete content with ID: ${id}`);
+      // Call the delete method from the controller
     }
   };
 
-  useEffect(() => {
-    fetchContent();
-  }, []);
-
-  const handleDeleteContent = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this content item?')) {
-      try {
-        await axios.delete(`/api/content/${id}`);
-        fetchContent();
-      } catch (err) {
-        alert('Failed to delete content. Please try again.');
-      }
-    }
+  const handlePublishToggle = (id: string, isPublished: boolean) => {
+    console.log(`${isPublished ? 'Publish' : 'Unpublish'} content with ID: ${id}`);
+    // Call the publish toggle method from the controller
   };
 
   if (loading && content.length === 0) {
@@ -285,8 +286,8 @@ const ContentList: React.FC = () => {
       </div>
       
       <ContentFilter 
-        options={{}} 
-        onApplyFilters={() => {}} 
+        options={options} 
+        onApplyFilters={applyFilters} 
       />
       
       {content.length === 0 ? (
@@ -307,12 +308,36 @@ const ContentList: React.FC = () => {
               publishedAt={item.publishedAt}
               createdAt={item.createdAt}
               updatedAt={item.updatedAt}
-              onView={() => {}}
-              onEdit={() => {}}
+              onView={handleViewContent}
+              onEdit={handleEditContent}
               onDelete={handleDeleteContent}
-              onPublish={() => {}}
+              onPublish={handlePublishToggle}
             />
           ))}
+        </div>
+      )}
+      
+      {pagination.totalPages > 1 && (
+        <div className="pagination-controls">
+          <button
+            className="pagination-btn prev"
+            disabled={pagination.page === 1}
+            onClick={() => fetchContent({ page: pagination.page - 1 })}
+          >
+            Previous
+          </button>
+          
+          <span className="pagination-info">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+          
+          <button
+            className="pagination-btn next"
+            disabled={pagination.page === pagination.totalPages}
+            onClick={() => fetchContent({ page: pagination.page + 1 })}
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

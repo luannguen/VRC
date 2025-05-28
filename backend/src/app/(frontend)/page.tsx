@@ -1,5 +1,11 @@
-import PageTemplate, { generateMetadata } from './[slug]/page'
+import { HomePage } from '@/components/HomePage/HomePage'
+import type { Metadata } from 'next'
 
-export default PageTemplate
+export default function Page() {
+  return <HomePage />
+}
 
-export { generateMetadata }
+export const metadata: Metadata = {
+  title: 'VRC - Chào mừng',
+  description: 'Trang chủ VRC Backend',
+}

@@ -20,20 +20,19 @@ export default function LogoutPage() {
         })
 
         if (res.ok) {
-          // Redirect back to login page after successful logout
-          router.push('/admin/login')
+          // Redirect back to homepage after successful logout
+          router.push('/')
         } else {
           console.error('Logout failed:', await res.text())
-          // Even if logout fails, redirect to login page
+          // Even if logout fails, redirect to homepage
           setTimeout(() => {
-            router.push('/admin/login')
+            router.push('/')
           }, 1000)
-        }
-      } catch (error) {
+        }      } catch (error) {
         console.error('Error during logout:', error)
-        // Fallback - redirect to login even on error
+        // Fallback - redirect to homepage even on error
         setTimeout(() => {
-          router.push('/admin/login')
+          router.push('/')
         }, 1000)
       }
     }
@@ -42,8 +41,8 @@ export default function LogoutPage() {
   }, [router])
 
   return (
-    <div style={{ 
-      display: 'flex', 
+    <div style={{
+      display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',

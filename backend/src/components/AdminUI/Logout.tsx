@@ -16,10 +16,9 @@ const Logout: React.FC = () => {
         method: 'POST',
         credentials: 'include',
       });
-      
-      if (res.ok) {
-        // Redirect to login page
-        router.push('/admin/login');
+        if (res.ok) {
+        // Redirect to homepage
+        router.push('/');
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -27,8 +26,8 @@ const Logout: React.FC = () => {
   };
 
   return (
-    <button 
-      className="logout-button" 
+    <button
+      className="logout-button"
       onClick={handleLogout}
     >
       Đăng xuất

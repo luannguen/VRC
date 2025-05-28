@@ -22,7 +22,6 @@ import NewsDetail from "./pages/NewsDetail";
 import Contact from "./pages/Contact";
 import Events from "./pages/Events";
 import NotFound from "./pages/NotFound";
-import Demo from "./pages/Demo"; // New Demo page
 
 // Legal pages
 import Privacy from "./pages/legal/Privacy";
@@ -84,7 +83,6 @@ const App = () => (
           <Route path="news" element={<News />} />
           <Route path="news/:slug" element={<NewsDetail />} />
           <Route path="events" element={<Events />} />
-          <Route path="demo" element={<Demo />} />
           <Route path="publications" element={<Publications />} />
           <Route path="publications/inverter-technology" element={<InverterTechnology />} />
           <Route path="publications/heat-recovery-solutions" element={<HeatRecoverySolutions />} />
